@@ -1,0 +1,1 @@
+WScript.CreateObject("Wscript.Shell").Run "start_app.bat",0,True

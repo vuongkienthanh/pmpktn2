@@ -1,0 +1,178 @@
+from core.initialize import *
+from core.state import State
+from core.mainview_widgets.patient_book import PatientBook
+from core.mainview_widgets.visit_list import VisitList
+from core.mainview_widgets.order_book import OrderBook
+from core.mainview_widgets.widgets import *
+from core.menu.menubar import MyMenuBar
+from core.accel import my_accel
+import wx
+
+
+class MainView(wx.Frame):
+
+    def __init__(self, parent, con, config):
+
+        # config
+        super().__init__(
+            parent,
+            title='PHẦN MỀM PHÒNG KHÁM TẠI NHÀ',
+            pos=(20, 20),
+            size=window_size)
+        self.SetBackgroundColour(background_color)
+        self.SetMinClientSize(window_size)
+
+        # data
+        self.con = con
+        self.state = State(self)
+        self.config = config
+
+        # GUI
+        self._createInterface()
+        self.SetMenuBar(MyMenuBar())
+        self.SetAcceleratorTable(my_accel)
+        self._bind()
+        self.start()
+
+##########################################################################
+##########################################################################
+##########################################################################
+
+    def _createInterface(self):
+        self._createWidgets()
+        self._setSizer()
+
+    def _createWidgets(self):
+        self._create_left_widgets()
+        self._create_right_widgets()
+
+    def _setSizer(self):
+
+        left_sizer = self._create_left_sizer()
+        right_sizer = self._create_right_sizer()
+
+        whole_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        whole_sizer.Add(left_sizer, 4, wx.EXPAND)
+        whole_sizer.Add(right_sizer, 6,
+                        wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self.SetSizer(whole_sizer)
+
+    def _create_left_widgets(self):
+        self.patient_book = PatientBook(self)
+        self.visit_label = wx.StaticText(self, label='Lượt khám cũ:')
+        self.visit_list = VisitList(self)
+
+    def _create_left_sizer(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.patient_book, 10, wx.EXPAND | wx.LEFT | wx.TOP, 10)
+        sizer.Add(self.visit_label, 0, wx.EXPAND | wx.LEFT, 20)
+        sizer.Add(self.visit_list, 4, wx.EXPAND | wx.LEFT | wx.BOTTOM, 20)
+        return sizer
+
+    def _create_right_widgets(self):
+        self.name = DisabledTextCtrl(self)
+        self.gender = DisabledTextCtrl(self)
+        self.birthdate = DisabledTextCtrl(self)
+        self.age = DisabledTextCtrl(self)
+        self.phone = DisabledTextCtrl(self)
+        self.address = DisabledTextCtrl(self)
+        self.past_history = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        self.vnote = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        self.diagnosis = wx.TextCtrl(self)
+        self.weight = WeightCtrl(self)
+        self.days = DaysCtrl(self)
+        self.updatequantitybtn = UpdateQuantityBtn(self)
+        self.order_book = OrderBook(self)
+        self.follow = Follow(self)
+        self.newvisitbtn = NewVisitBtn(self)
+        self.savebtn = SaveBtn(self)
+        self.price = PriceCtrl(self)
+
+    def _create_right_sizer(self):
+        def static(s):
+            return (wx.StaticText(self, label=s), 0, wx.ALIGN_CENTER | wx.ALL, 2)
+
+        def widget(w, p, r=5):
+            return (w, p, wx.RIGHT, r)
+
+        name_row = wx.BoxSizer(wx.HORIZONTAL)
+        name_row.AddMany([
+            static("Họ tên:"),
+            widget(self.name, 3, 0),
+            static("Giới:"),
+            widget(self.gender, 1, 0),
+            static("Ngày sinh:"),
+            widget(self.birthdate, 2, 0),
+            static("Tuổi:"),
+            widget(self.age, 2, 0),
+        ])
+        addr_row = wx.BoxSizer(wx.HORIZONTAL)
+        addr_row.AddMany([
+            static("Địa chỉ:"),
+            widget(self.address, 6),
+            static("Điện thoại:"),
+            widget(self.phone, 2, 0)
+        ])
+
+        diag_row = wx.BoxSizer(wx.HORIZONTAL)
+        diag_row.AddMany([
+            static("Chẩn đoán:"),
+            widget(self.diagnosis, 1, 0)
+        ])
+
+        weight_row = wx.BoxSizer(wx.HORIZONTAL)
+        weight_row.AddMany([
+            static("Cân nặng (kg):"),
+            widget(self.weight, 0),
+            widget(GetWeightBtn(self), 0),
+            static("Số ngày cho toa:"),
+            widget(self.days, 0),
+            widget(self.updatequantitybtn, 0)
+        ])
+
+        btn_row = wx.BoxSizer(wx.HORIZONTAL)
+        btn_row.AddMany([
+            widget(self.newvisitbtn, 0),
+            widget(self.savebtn, 0),
+            (0, 0, 3),
+            static("Giá tiền:"),
+            widget(self.price, 1)
+        ])
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.AddMany([
+            (name_row, 0, wx.EXPAND),
+            (addr_row, 0, wx.EXPAND),
+            (wx.StaticText(self, label='Bệnh nền, dị ứng:')),
+            (self.past_history, 1, wx.EXPAND),
+            (diag_row, 0, wx.EXPAND),
+            (wx.StaticText(self, label='Bệnh sử:')),
+            (self.vnote, 1, wx.EXPAND),
+            (weight_row, 0),
+            (self.order_book, 3, wx.EXPAND),
+            (self.follow, 0, wx.EXPAND),
+            (btn_row, 0, wx.EXPAND),
+
+        ])
+        return sizer
+##########################################################################
+##########################################################################
+##########################################################################
+
+    def _bind(self):
+        self.Bind(wx.EVT_CLOSE, self.onClose)
+
+    def onClose(self, e):
+        print("close sqlite3 connection")
+        self.con.close()
+        e.Skip()
+
+    def start(self):
+        self.patient_book.GetPage(0).build(self.state.queuelist)
+        self.patient_book.GetPage(1).build(self.state.todaylist)
+
+    def refresh(self):
+        self.state.refresh()
+        self.patient_book.GetPage(0).rebuild(self.state.queuelist)
+        self.patient_book.GetPage(1).rebuild(self.state.todaylist)
+        self.patient_book.ChangeSelection(0)

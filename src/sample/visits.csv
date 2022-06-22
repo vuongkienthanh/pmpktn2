@@ -1,0 +1,12 @@
+diagnosis,weight,days,patient_id,exam_datetime,vnote,follow
+viêm họng cấp,10,2,1,2022-01-01T15:30:01.000000,ho không sốt,
+sốt siêu vi,12.3,2,10,2021-12-31T16:59:59.000000,sốt 2 ngày,
+đau đầu,30,5,6,2022-01-31T16:00:00.000000,,
+viêm amydan,50,2,7,2022-01-31T16:10:02.000000,,
+viêm họng,15,3,8,2022-04-01T16:40:40.000000,"khó thở",
+viêm phế quản,20,3,7,2022-05-06T17:00:00.000000,,
+tiêu chảy,20,3,2,2022-02-01T18:30:00.000000,,"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Malesuada nunc vel risus commodo viverra maecenas accumsan lacus vel. Pulvinar proin gravida hendrerit lectus. Eu lobortis elementum nibh tellus molestie nunc non blandit massa."
+rối loạn tiêu hóa,21.5,3,3,2022-02-28T18:21:21.000000,,
+mụn,40,3,4,2022-03-01T19:00:00.000000,,
+"viêm da tiết bã, suy thận cấp trước thận, tăng huyết áp thai kỳ, đái tháo đường týp 2, blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah",23.5,3,28,2022-05-05T20:00:00.000000,,Dấu hiệu nặng TCM
+"viêm da tiết bã, suy thận cấp trước thận, tăng huyết áp thai kỳ, đái tháo đường týp 2, blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah",23.5,3,28,2022-05-05T21:00:00.000000,,Dấu hiệu nặng TCM
