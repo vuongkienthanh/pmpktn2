@@ -37,6 +37,10 @@ def check_blank(val):
     return None if val.strip() == '' else val.strip()
 
 
+def check_none(val):
+    return str(val) if val else ''
+
+
 def calc_quantity(times, dose, days, sale_unit, list_unit):
     def calc(times, dose, days):
         if '/' in dose:

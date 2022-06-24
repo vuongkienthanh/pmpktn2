@@ -282,7 +282,7 @@ class SaveBtn(wx.Button):
 
             wx.MessageBox("Cập nhật lượt khám thành công",
                           "Cập nhật lượt khám")
-            if wx.MessageBox("In toa về?", "In toa", style=wx.YES_DEFAULT | wx.NO) == wx.YES:
+            if wx.MessageBox("In toa về?", "In toa", style=wx.YES | wx.NO) == wx.YES:
                 printout = PrintOut(self.Parent)
                 wx.Printer(wx.PrintDialogData(printdata)
                            ).Print(self, printout, False)

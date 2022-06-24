@@ -18,12 +18,12 @@ class SearchPatientList(wx.ListCtrl):
         self.AppendColumn('Giới', width=-2)
         self.AppendColumn('Ngày sinh'.ljust(10, ' '), width=-2)
         self.num_of_lines = num_of_lines
-        self.page_index = 0
-        self.saved_pages = []
-        self.temp_page = []
-        self.cur_page = []
-        self._done = False
-        self.pid = None
+        self.page_index :int = 0
+        self.saved_pages :list[list]= []
+        self.temp_page :list = []
+        self.cur_page :list = []
+        self._done :bool= False
+        self.pid :int |None= None
 
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
@@ -142,7 +142,11 @@ class FindPatientDialog(wx.Dialog):
 
     def rebuild(self, s: str):
         self.listctrl.clear()
-        self.cur = self.Parent.con.select_patients_wth_name(s)
+        self.cur = self.Parent.con.execute("""
+            SELECT id AS pid, name, gender, birthdate
+            FROM patients
+            WHERE name LIKE ?
+        """, ('%' + s + '%',))
         self.build()
         self.next_prev_status_check()
 
@@ -240,7 +244,7 @@ class FindPatientDialog(wx.Dialog):
         pid = self.listctrl.pid
         if pid:
             try:
-                self.Parent.con.delete(Patient, pid)
+                self.Parent.con.delete_id(Patient, pid)
                 wx.MessageBox("Xóa thành công", "OK")
                 self.Parent.refresh()
                 self.clear()

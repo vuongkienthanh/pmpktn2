@@ -131,17 +131,13 @@ class Connection():
         ).fetchall()
         return [t.parse(row) for row in rows]
 
-    @overload
-    def delete(self, base: type[BASE], id: int) -> int | None: ...
-    @overload
-    def delete(self, base: BASE) -> int | None: ...
+    def delete(self, base):
+        with self.sqlcon as con:
+            return con.execute(
+                f"DELETE FROM {base.table_name} WHERE id = {base.id}"
+            ).rowcount
 
-    def delete(self, base, id=None):
-        if id is None:
-            t = type(base)
-            id = base.id
-        else:
-            t = base
+    def delete_id(self, t: type[BASE], id:int)->int|None:
         with self.sqlcon as con:
             return con.execute(
                 f"DELETE FROM {t.table_name} WHERE id = {id}"
@@ -195,11 +191,3 @@ class Connection():
             return con.execute(
                 f"DELETE FROM queuelist WHERE patient_id = {pid}"
             ).rowcount
-
-    def select_patients_wth_name(self, s: str) -> sqlite3.Cursor:
-        query = """
-            SELECT id AS pid, name, gender, birthdate
-            FROM patients
-            WHERE name LIKE ?
-        """
-        return self.sqlcon.execute(query, ('%' + s + '%',))

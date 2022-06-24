@@ -1,4 +1,5 @@
 from core.initialize import *
+from core.menu.patient_dialog import EditPatientDialog
 from db.db_class import Patient, Visit
 import sqlite3
 import wx
@@ -31,6 +32,7 @@ class PatientListCtrl(wx.ListCtrl):
         self.AppendColumn('Ngày sinh'.ljust(10, ' '), width=-2)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick)
 
     def build(self, _list: list[sqlite3.Row]) -> None:
         for item in _list:
@@ -43,6 +45,8 @@ class PatientListCtrl(wx.ListCtrl):
     def append_ui(self, item): ...
     def onSelect(self, e): ...
     def onDeselect(self, e): ...
+    def onDoubleClick(self,e):
+        EditPatientDialog(self.Parent.Parent, self.Parent.Parent.state.patient).ShowModal()
 
 
 class QueuingPatientList(PatientListCtrl):

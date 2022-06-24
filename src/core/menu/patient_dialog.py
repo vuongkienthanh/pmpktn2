@@ -86,14 +86,13 @@ class BasePatientDialog(wx.Dialog):
         e.Skip()
 
     def get_patient(self):
-        def check_blank(val): return None if val.strip() == '' else val.strip()
         return Patient(
             name=self.name.Value,
             gender=Gender(self.gender.Selection),
             birthdate=self.birthdate.GetDate(),
-            address=check_blank(self.address.Value),
-            phone=check_blank(self.phone.Value),
-            past_history=check_blank(self.past_history.Value)
+            address=otf.check_blank(self.address.Value),
+            phone=otf.check_blank(self.phone.Value),
+            past_history=otf.check_blank(self.past_history.Value)
         )
 
     def _setSizer(self):
@@ -108,32 +107,35 @@ class BasePatientDialog(wx.Dialog):
         entry_sizer.AddGrowableRow(5, 3)
         entry_sizer.AddGrowableRow(7, 3)
         entry_sizer.AddMany([
-            static("Họ tên:"),
+            static("Họ tên*"),
             widget(self.name),
-            static("Giới:"),
+            static("Giới*"),
             widget(self.gender),
-            static("Ngày sinh:"),
+            static("Ngày sinh*"),
             widget(self.birthdate_text),
             static("Tuổi:"),
             widget(self.age),
             (0, 0, 0, wx.EXPAND),
             widget(self.birthdate),
-            static("Địa chỉ:"),
+            static("Địa chỉ"),
             widget(self.address),
-            static('Điện thoại:'),
+            static('Điện thoại'),
             widget(self.phone),
-            static('Bệnh nền, dị ứng:'),
+            static('Bệnh nền, dị ứng'),
             widget(self.past_history),
         ])
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(entry_sizer, 6, wx.ALL | wx.EXPAND, 10)
-        sizer.Add(self.CreateStdDialogButtonSizer(
-            wx.OK | wx.CANCEL), 1, wx.ALL | wx.EXPAND, 10)
+        sizer.AddMany([
+            (entry_sizer, 6, wx.ALL | wx.EXPAND, 10),
+            (wx.StaticText(self, label="* là bắt buộc"), 0, wx.EXPAND | wx.ALL, 5),
+            (self.CreateStdDialogButtonSizer(
+                wx.OK | wx.CANCEL), 1, wx.ALL | wx.EXPAND, 10)
+        ])
         self.SetSizerAndFit(sizer)
 
     def _bindOkBtn(self):
         for i in range(4, 0, -1):
-            btn = self.Sizer.Children[1].Sizer.Children[i].Window
+            btn = self.Sizer.Children[2].Sizer.Children[i].Window
             if (btn is not None) and (btn.Id == wx.ID_OK):
                 btn.Bind(wx.EVT_BUTTON, self.onOkBtn)
 
@@ -160,7 +162,8 @@ class NewPatientDialog(BasePatientDialog):
                     caption="Danh sách chờ khám",
                     style=wx.OK_DEFAULT | wx.CANCEL
                 ).ShowModal() == wx.ID_OK:
-                    self.Parent.con.insert(QueueListWithoutTime(patient_id=lastrowid))
+                    self.Parent.con.insert(
+                        QueueListWithoutTime(patient_id=lastrowid))
                     wx.MessageBox(
                         "Thêm vào danh sách chờ thành công", "OK")
                     self.Parent.refresh()
@@ -175,7 +178,7 @@ class NewPatientDialog(BasePatientDialog):
 class EditPatientDialog(BasePatientDialog):
 
     def __init__(self, parent, p):
-        super().__init__(parent, title="Chỉnh sửa thông tin bệnh nhân")
+        super().__init__(parent, title="Cập nhật thông tin bệnh nhân")
         self.p = p
         self.build()
 

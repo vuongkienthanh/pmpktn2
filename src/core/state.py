@@ -48,9 +48,12 @@ class State():
         self.mv.updatequantitybtn.Enable()
         self.visitlist = self.mv.con.select_visits_by_patient_id(p.id, limit=5)
         idx = self.mv.patient_book.Selection
+        self.mv.GetMenuBar().menuUpdatePatient.Enable()
+        self.mv.GetMenuBar().menuDeletePatient.Enable()
         self.mv.GetMenuBar().menuInsertVisit.Enable()
         self.mv.GetMenuBar().menuPrint.Enable()
         self.mv.GetMenuBar().menuPreview.Enable()
+        self.mv.GetMenuBar().menuDeleteQueueList.Enable()
         self.mv.patient_book.GetPage(idx).SetFocus()
 
     def onPatientDeselect(self):
@@ -66,9 +69,12 @@ class State():
         self.mv.updatequantitybtn.Disable()
         self.visit = None
         self.visitlist = []
+        self.mv.GetMenuBar().menuUpdatePatient.Enable(False)
+        self.mv.GetMenuBar().menuDeletePatient.Enable(False)
         self.mv.GetMenuBar().menuInsertVisit.Enable(False)
         self.mv.GetMenuBar().menuPrint.Enable(False)
         self.mv.GetMenuBar().menuPreview.Enable(False)
+        self.mv.GetMenuBar().menuDeleteQueueList.Enable(False)
 
     @property
     def visit(self):
@@ -94,8 +100,10 @@ class State():
         self.mv.newvisitbtn.Enable()
         self.mv.order_book.GetPage(0).reuse_druglist_btn.Enable()
         self.mv.GetMenuBar().menuNewVisit.Enable()
-        self.mv.GetMenuBar().menuInsertVisit.Enable(False)
+        if self.patient is not None:
+            self.mv.GetMenuBar().menuInsertVisit.Enable(False)
         self.mv.GetMenuBar().menuUpdateVisit.Enable()
+        self.mv.GetMenuBar().menuDeleteVisit.Enable()
         self.mv.visit_list.SetFocus()
 
     def onVisitDeselect(self):
@@ -110,8 +118,10 @@ class State():
         self.mv.savebtn.SetLabel("Lưu")
         self.mv.order_book.GetPage(0).reuse_druglist_btn.Disable()
         self.mv.GetMenuBar().menuNewVisit.Enable(False)
-        self.mv.GetMenuBar().menuInsertVisit.Enable()
+        if self.patient is not None:
+            self.mv.GetMenuBar().menuInsertVisit.Enable()
         self.mv.GetMenuBar().menuUpdateVisit.Enable(False)
+        self.mv.GetMenuBar().menuDeleteVisit.Enable(False)
         self.warehouse = None
 
     @property

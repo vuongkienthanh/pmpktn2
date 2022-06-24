@@ -1,4 +1,5 @@
 from core.initialize import *
+import core.other_func as otf
 import wx
 
 
@@ -57,10 +58,19 @@ class DrugPopup(wx.ComboPopup):
             self.check_min_quantity(item, index)
 
     def append_ui(self, item):
-        def check_blank(val): return str(val) if val else ''
-        self.lc.Append([check_blank(getattr(item, field)) for field in [
-            'name', 'element', 'quantity', 'usage_unit', 'sale_price', 'usage', 'expire_date'
-        ]])
+        if item.expire_date  is None:
+            expire_date =''
+        else:
+            expire_date = item.expire_date.strftime("%d/%m/%Y")
+        self.lc.Append([
+            item.name,
+            item.element,
+            str(item.quantity),
+            item.usage_unit,
+            int(item.sale_price),
+            item.usage,
+            expire_date
+        ])
 
     def check_min_quantity(self, item, index):
         if item.quantity <= self.ComboCtrl.Parent.Parent.Parent.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"]:
