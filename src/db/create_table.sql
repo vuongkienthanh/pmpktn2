@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS patients (
 -- Danh sách chờ
 CREATE TABLE IF NOT EXISTS queuelist (
     id INTEGER PRIMARY KEY,
-    patient_id INTEGER UNIQUE,
+    patient_id INTEGER UNIQUE NOT NULL,
     added_datetime TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (patient_id)
       REFERENCES patients (id)
@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS visits (
   diagnosis TEXT NOT NULL,
   weight DECIMAL NOT NULL,
   days INTEGER NOT NULL,
-  patient_id INTEGER,
+  recheck INTEGER NOT NULL,
+  patient_id INTEGER NOT NULL,
   vnote TEXT, -- bệnh sử
   follow TEXT,
   FOREIGN KEY (patient_id)
@@ -70,11 +71,11 @@ CREATE INDEX IF NOT EXISTS drug_element
 -- Toa thuốc
 CREATE TABLE IF NOT EXISTS linedrugs (
   id INTEGER PRIMARY KEY,
-  drug_id INTEGER,
+  drug_id INTEGER NOT NULL,
   dose TEXT NOT NULL, -- liều 1 cữ
   times INTEGER NOT NULL,-- số cữ
   quantity INTEGER NOT NULL, -- số lượng bán ra
-  visit_id INTEGER,
+  visit_id INTEGER NOT NULL,
   note TEXT, -- thay thế cách dùng mặc định
   FOREIGN KEY (visit_id)
     REFERENCES visits (id)

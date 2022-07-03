@@ -91,6 +91,7 @@ class Visit(BASE):
     diagnosis: str
     weight: Decimal
     days: int
+    recheck: int
     patient_id: int
     follow: str | None = None
     id: int | None = None

@@ -109,12 +109,15 @@ class PrintOut(wx.Printout):
                         ), 150, 735 + 130 * i)
 
             if self.HasPage(2):
-                with wx.DCFontChanger(dc, info):
+                with wx.DCFontChanger(dc, heading):
                     dc.DrawText("Trang 1/2", 1300, 1750)
             else:
                 with wx.DCFontChanger(dc, info):
-                    dc.DrawText("Bác sĩ khám bệnh", 1100, 1800)
-                    follow = tw.wrap(self.mv.follow.Value, width=35)
+                    dc.DrawText("Bác sĩ khám bệnh", 1100, 1750)
+                with wx.DCFontChanger(dc, heading):
+                    if self.mv.recheck.GetValue() != 0:
+                        dc.DrawText(f"Tái khám sau {self.mv.recheck.GetValue()} ngày", 200, 1750)
+                    follow = tw.wrap(self.mv.follow.Value, width=50)
                     for index, line in enumerate(follow):
                         dc.DrawText(line, 100, 1800 + 60 * index)
             return True
@@ -156,12 +159,15 @@ class PrintOut(wx.Printout):
                         dl['dose'],
                         dl['usage_unit']
                     ), 150, 685 + 130 * i)
-            with wx.DCFontChanger(dc, info):
-                dc.DrawText("Trang 2/2", 1300, 1700)
-                dc.DrawText("Bác sĩ khám bệnh", 1100, 1750)
-                follow = tw.wrap(self.mv.follow.Value, width=35)
+            with wx.DCFontChanger(dc, heading):
+                dc.DrawText("Trang 2/2", 1300, 1650)
+                if self.mv.recheck.GetValue() != 0:
+                    dc.DrawText(f"Tái khám sau {self.mv.recheck.GetValue()} ngày", 200, 1700)
+                follow = tw.wrap(self.mv.follow.Value, width=50)
                 for index, line in enumerate(follow):
                     dc.DrawText(line, 100, 1750 + 60 * index)
+            with wx.DCFontChanger(dc, info):
+                dc.DrawText("Bác sĩ khám bệnh", 1100, 1700)
             return True
         else:
             return False

@@ -69,6 +69,7 @@ class Connection():
             diagnosis="Viêm ruột thừa",
             weight=decimal.Decimal(10),
             days=2,
+            recheck=2,
             patient_id=1,
             follow="follow",
             vnote="dynamic created"

@@ -1,1 +1,1 @@
-WScript.CreateObject("Wscript.Shell").Run "start_app.bat",0,True
+WScript.CreateObject("Wscript.Shell").Run "windows_cmd.bat",0,True

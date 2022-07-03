@@ -21,6 +21,7 @@ class WeightCtrl(wx.SpinCtrlDouble):
     def __init__(self, parent):
         super().__init__(parent)
         self.SetDigits(1)
+        self.Disable()
 
     def GetValue(self):
         if super().GetValue() == 0:
@@ -36,6 +37,25 @@ class DaysCtrl(wx.SpinCtrl):
         super().__init__(parent, style=wx.SP_ARROW_KEYS,
                          initial=parent.config["so_ngay_toa_ve_mac_dinh"])
         self.SetRange(0, 200)
+        self.Bind(wx.EVT_SPINCTRL, self.onSpin)
+        self.Disable()
+    def onSpin(self, e):
+        self.Parent.recheck.SetValue(e.GetPosition())
+
+class RecheckCtrl(wx.SpinCtrl):
+    def __init__(self, parent):
+        super().__init__(parent, style=wx.SP_ARROW_KEYS,
+                         initial=parent.config["so_ngay_toa_ve_mac_dinh"])
+        self.SetRange(0, 200)
+        self.Disable()
+
+class NoRecheck(wx.Button):
+    def __init__(self, parent):
+        super().__init__(parent, label="Không tái khám")
+        self.Bind(wx.EVT_BUTTON, self.onClick)
+        self.Disable()
+    def onClick(self, e):
+        self.Parent.recheck.SetValue(0)
 
 
 class UpdateQuantityBtn(wx.Button):
@@ -52,7 +72,7 @@ class UpdateQuantityBtn(wx.Button):
                 dose=item['dose'],
                 days=self.Parent.days.GetValue(),
                 sale_unit=item['sale_unit'],
-                list_unit=self.Parent.config['thuoc_ban_mot_don_vi']
+                list_of_unit=self.Parent.config['thuoc_ban_mot_don_vi']
             )
             item['quantity'] = q
             drug_list.SetItem(
@@ -161,6 +181,7 @@ class SaveBtn(wx.Button):
                 diagnosis=diagnosis,
                 weight=self.Parent.weight.GetValue(),
                 days=self.Parent.days.GetValue(),
+                recheck=self.Parent.recheck.GetValue(),
                 patient_id=p.id,
                 vnote=otf.check_blank(self.Parent.vnote.GetValue()),
                 follow=self.Parent.follow.GetValue()
@@ -219,6 +240,7 @@ class SaveBtn(wx.Button):
             v.diagnosis = diagnosis
             v.weight = self.Parent.weight.GetValue()
             v.days = self.Parent.days.GetValue()
+            v.recheck = self.Parent.recheck.GetValue()
             v.vnote = otf.check_blank(self.Parent.vnote.GetValue())
             v.follow = self.Parent.follow.GetValue()
             update_ld = []

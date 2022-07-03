@@ -41,7 +41,7 @@ def check_none(val):
     return str(val) if val else ''
 
 
-def calc_quantity(times, dose, days, sale_unit, list_unit):
+def calc_quantity(times, dose, days, sale_unit, list_of_unit):
     def calc(times, dose, days):
         if '/' in dose:
             numer, denom = [int(i) for i in dose.split('/')]
@@ -51,7 +51,7 @@ def calc_quantity(times, dose, days, sale_unit, list_unit):
             return round(times * float(dose) * days)
     try:
         if sale_unit is not None:
-            if sale_unit.casefold() in [item.casefold() for item in list_unit]:
+            if sale_unit.casefold() in [item.casefold() for item in list_of_unit]:
                 return 1
             else:
                 return calc(times, dose, days)

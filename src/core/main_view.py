@@ -80,19 +80,22 @@ class MainView(wx.Frame):
         self.vnote = wx.TextCtrl(self, style=wx.TE_MULTILINE)
         self.diagnosis = wx.TextCtrl(self)
         self.weight = WeightCtrl(self)
+        self.get_weight_btn = GetWeightBtn(self)
         self.days = DaysCtrl(self)
         self.updatequantitybtn = UpdateQuantityBtn(self)
         self.order_book = OrderBook(self)
+        self.recheck = RecheckCtrl(self)
+        self.norecheck= NoRecheck(self)
+        self.price = PriceCtrl(self)
         self.follow = Follow(self)
         self.newvisitbtn = NewVisitBtn(self)
         self.savebtn = SaveBtn(self)
-        self.price = PriceCtrl(self)
 
     def _create_right_sizer(self):
         def static(s):
             return (wx.StaticText(self, label=s), 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
-        def widget(w, p, r=5):
+        def widget(w, p=0, r=5):
             return (w, p, wx.RIGHT, r)
 
         name_row = wx.BoxSizer(wx.HORIZONTAL)
@@ -122,21 +125,29 @@ class MainView(wx.Frame):
 
         weight_row = wx.BoxSizer(wx.HORIZONTAL)
         weight_row.AddMany([
-            static("Cân nặng (kg):"),
-            widget(self.weight, 0),
-            widget(GetWeightBtn(self), 0),
-            static("Số ngày cho toa:"),
-            widget(self.days, 0),
-            widget(self.updatequantitybtn, 0)
+            static("Cân nặng (kg)"),
+            widget(self.weight),
+            widget(self.get_weight_btn),
+            static("Số ngày cho toa"),
+            widget(self.days),
+            widget(self.updatequantitybtn)
+        ])
+
+        recheck_row = wx.BoxSizer(wx.HORIZONTAL)
+        recheck_row.AddMany([
+            static("Số ngày tái khám"),
+            widget(self.recheck,1),
+            widget(self.norecheck),
+            (0, 0, 3),
+            static("Giá tiền"),
+            widget(self.price, 1)
+
         ])
 
         btn_row = wx.BoxSizer(wx.HORIZONTAL)
         btn_row.AddMany([
-            widget(self.newvisitbtn, 0),
-            widget(self.savebtn, 0),
-            (0, 0, 3),
-            static("Giá tiền:"),
-            widget(self.price, 1)
+            widget(self.newvisitbtn),
+            widget(self.savebtn),
         ])
 
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -150,6 +161,7 @@ class MainView(wx.Frame):
             (self.vnote, 1, wx.EXPAND),
             (weight_row, 0),
             (self.order_book, 3, wx.EXPAND),
+            (recheck_row, 0, wx.EXPAND),
             (self.follow, 0, wx.EXPAND),
             (btn_row, 0, wx.EXPAND),
 

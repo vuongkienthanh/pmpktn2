@@ -1,3 +1,3 @@
 cd %~dp0
-cd ..\src
-poetry run python main.py
+cd ..
+poetry run python src\main.py

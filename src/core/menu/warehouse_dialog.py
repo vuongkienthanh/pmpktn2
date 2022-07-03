@@ -124,8 +124,10 @@ class WarehouseSetupDialog(wx.Dialog):
         idx = self.lc.GetFirstSelected()
         wh = self._list[idx]
         try:
-            self.Parent.con.delete(wh)
-            wx.MessageBox("Xoá thuốc thành công", "Xóa")
+            rowcount = self.Parent.con.delete(wh)
+            wx.MessageBox(f"Xoá thuốc thành công\n{rowcount}", "Xóa")
+            self.Parent.state.refresh()
+            self.rebuild()
         except Exception as error:
             wx.MessageBox(f"Lỗi không xóa được\n{error}", "Lỗi")
 
@@ -139,11 +141,11 @@ class WarehouseDialog(wx.Dialog):
         self.quantity.Bind(wx.EVT_CHAR, lambda e: otf.only_nums(e))
         self.usage_unit = wx.TextCtrl(self)
         self.usage = wx.TextCtrl(self)
-        self.sale_unit = wx.TextCtrl(self)
         self.purchase_price = wx.TextCtrl(self)
         self.purchase_price.Bind(wx.EVT_CHAR, lambda e: otf.only_nums(e))
         self.sale_price = wx.TextCtrl(self)
         self.sale_price.Bind(wx.EVT_CHAR, lambda e: otf.only_nums(e))
+        self.sale_unit = wx.TextCtrl(self)
         self.expire_date = adv.CalendarCtrl(self)
         self.made_by = wx.TextCtrl(self)
         self.note = wx.TextCtrl(self, style=wx.TE_MULTILINE)

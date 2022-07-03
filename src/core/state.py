@@ -46,6 +46,11 @@ class State():
         self.mv.savebtn.SetLabel("Lưu")
         self.mv.savebtn.Enable()
         self.mv.updatequantitybtn.Enable()
+        self.mv.weight.Enable()
+        self.mv.get_weight_btn.Enable()
+        self.mv.days.Enable()
+        self.mv.recheck.Enable()
+        self.mv.norecheck.Enable()
         self.visitlist = self.mv.con.select_visits_by_patient_id(p.id, limit=5)
         idx = self.mv.patient_book.Selection
         self.mv.GetMenuBar().menuUpdatePatient.Enable()
@@ -67,6 +72,11 @@ class State():
         self.mv.savebtn.SetLabel("Lưu")
         self.mv.savebtn.Disable()
         self.mv.updatequantitybtn.Disable()
+        self.mv.weight.Disable()
+        self.mv.get_weight_btn.Disable()
+        self.mv.days.Disable()
+        self.mv.recheck.Disable()
+        self.mv.norecheck.Disable()
         self.visit = None
         self.visitlist = []
         self.mv.GetMenuBar().menuUpdatePatient.Enable(False)
@@ -93,6 +103,7 @@ class State():
         self.mv.vnote.ChangeValue(v.vnote or '')
         self.mv.weight.SetValue(v.weight)
         self.mv.days.SetValue(v.days)
+        self.mv.recheck.SetValue(v.recheck)
         self.mv.follow.SetValue(v.follow)
         self.linedruglist = self.mv.con.select_linedrugs_by_visit_id(v.id)
         self.mv.savebtn.SetLabel("Cập nhật")
@@ -111,6 +122,7 @@ class State():
         self.mv.vnote.ChangeValue('')
         self.mv.weight.SetValue(0)
         self.mv.days.SetValue(self.mv.config['so_ngay_toa_ve_mac_dinh'])
+        self.mv.recheck.SetValue(self.mv.config['so_ngay_toa_ve_mac_dinh'])
         self.mv.follow.ChangeValue("")
         self.linedruglist = []
         self.mv.price.ChangeValue('')
