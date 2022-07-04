@@ -87,7 +87,7 @@ class BasePatientDialog(wx.Dialog):
 
     def get_patient(self):
         return Patient(
-            name=self.name.Value,
+            name=self.name.Value.upper(),
             gender=Gender(self.gender.Selection),
             birthdate=self.birthdate.GetDate(),
             address=otf.check_blank(self.address.Value),

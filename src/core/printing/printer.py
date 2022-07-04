@@ -114,6 +114,7 @@ class PrintOut(wx.Printout):
             else:
                 with wx.DCFontChanger(dc, info):
                     dc.DrawText("Bác sĩ khám bệnh", 1100, 1750)
+                    dc.DrawText(self.mv.config['ky_ten_bac_si'], 1050, 2050)
                 with wx.DCFontChanger(dc, heading):
                     if self.mv.recheck.GetValue() != 0:
                         dc.DrawText(f"Tái khám sau {self.mv.recheck.GetValue()} ngày", 100, 1750)
@@ -170,6 +171,7 @@ class PrintOut(wx.Printout):
                     dc.DrawText(line, 100, 1750 + 60 * index)
             with wx.DCFontChanger(dc, info):
                 dc.DrawText("Bác sĩ khám bệnh", 1100, 1700)
+                dc.DrawText(self.mv.config['ky_ten_bac_si'], 1050, 2100)
             return True
         else:
             return False
