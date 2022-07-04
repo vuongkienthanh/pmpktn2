@@ -149,9 +149,7 @@ class MyMenuBar(wx.MenuBar):
         try:
             mv.con.delete(mv.state.visit)
             wx.MessageBox("Xóa thành công", "OK")
-            mv.state.visit = None
-            mv.state.visitlist = mv.con.select_visits_by_patient_id(
-                mv.state.patient.id)
+            mv.state.refresh()
         except sqlite3.Error as error:
             wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
 

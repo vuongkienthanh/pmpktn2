@@ -8,16 +8,15 @@ import os.path
 class SetupDialog(wx.Dialog):
     def __init__(self, parent):
         super().__init__(parent, title="Cài đặt hệ thống")
-        self.config = parent.config
-        self.name = wx.TextCtrl(self, value=self.config['ten_phong_kham'])
+        self.name = wx.TextCtrl(self, value=parent.config['ten_phong_kham'])
         self.price = wx.TextCtrl(
-            self, value=str(self.config["cong_kham_benh"]))
+            self, value=str(parent.config["cong_kham_benh"]))
         self.days = wx.SpinCtrl(
-            self, initial=self.config["so_ngay_toa_ve_mac_dinh"])
+            self, initial=parent.config["so_ngay_toa_ve_mac_dinh"])
         self.alert = wx.SpinCtrl(
-            self, initial=self.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"], max=10000)
+            self, initial=parent.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"], max=10000)
         self.unit = adv.EditableListBox(self)
-        for item in self.config["thuoc_ban_mot_don_vi"]:
+        for item in parent.config["thuoc_ban_mot_don_vi"]:
             self.unit.GetListCtrl().Append((item,))
 
         def static(s):
@@ -52,18 +51,19 @@ class SetupDialog(wx.Dialog):
 
     def onOk(self, e):
         try:
-            self.config['ten_phong_kham'] = self.name.Value
-            self.config['cong_kham_benh'] = int(self.price.Value)
-            self.config['so_ngay_toa_ve_mac_dinh'] = self.days.GetValue()
-            self.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"] = self.alert.GetValue()
-            self.config["thuoc_ban_mot_don_vi"] = [
+            self.Parent.config['ten_phong_kham'] = self.name.Value
+            self.Parent.config['cong_kham_benh'] = int(self.price.Value)
+            self.Parent.config['so_ngay_toa_ve_mac_dinh'] = self.days.GetValue()
+            self.Parent.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"] = self.alert.GetValue()
+            self.Parent.config["thuoc_ban_mot_don_vi"] = [
                 self.unit.GetListCtrl().GetItemText(idx).strip()
                 for idx in range(self.unit.GetListCtrl().ItemCount)
                 if self.unit.GetListCtrl().GetItemText(idx).strip() != ''
             ]
             with open(os.path.join(APP_DIR, "config.json"), mode='w', encoding="utf-8") as f:
-                json.dump(self.config, f, ensure_ascii=False, indent=4)
+                json.dump(self.Parent.config, f, ensure_ascii=False, indent=4)
             wx.MessageBox("Đã lưu cài đặt", "Cài đặt")
+            self.Parent.price.set_price()
             e.Skip()
         except Exception as error:
             wx.MessageBox(f"Lỗi không lưu được\n{error}", "Lỗi")

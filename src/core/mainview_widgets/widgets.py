@@ -77,6 +77,7 @@ class UpdateQuantityBtn(wx.Button):
             item['quantity'] = q
             drug_list.SetItem(
                 idx, 4, f"{q} {item['sale_unit'] or item['usage_unit']}")
+        self.Parent.price.set_price()
 
 
 class PriceCtrl(DisabledTextCtrl):
@@ -99,6 +100,9 @@ class PriceCtrl(DisabledTextCtrl):
             res += c
             if j == 2:
                 res += '.'
+        else:
+            if res[-1] == '.':
+                res = res[:-1]
         super().SetValue(res[::-1])
 
 

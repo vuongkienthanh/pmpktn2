@@ -116,7 +116,8 @@ class PrintOut(wx.Printout):
                     dc.DrawText("Bác sĩ khám bệnh", 1100, 1750)
                 with wx.DCFontChanger(dc, heading):
                     if self.mv.recheck.GetValue() != 0:
-                        dc.DrawText(f"Tái khám sau {self.mv.recheck.GetValue()} ngày", 200, 1750)
+                        dc.DrawText(f"Tái khám sau {self.mv.recheck.GetValue()} ngày", 100, 1750)
+                    dc.DrawText(f"Tổng cộng: {self.mv.price.GetValue()}", 550, 1750)
                     follow = tw.wrap(self.mv.follow.Value, width=50)
                     for index, line in enumerate(follow):
                         dc.DrawText(line, 100, 1800 + 60 * index)
@@ -162,7 +163,8 @@ class PrintOut(wx.Printout):
             with wx.DCFontChanger(dc, heading):
                 dc.DrawText("Trang 2/2", 1300, 1650)
                 if self.mv.recheck.GetValue() != 0:
-                    dc.DrawText(f"Tái khám sau {self.mv.recheck.GetValue()} ngày", 200, 1700)
+                    dc.DrawText(f"Tái khám sau {self.mv.recheck.GetValue()} ngày", 100, 1700)
+                dc.DrawText(f"Tổng cộng: {self.mv.price.GetValue()}", 550, 1700)
                 follow = tw.wrap(self.mv.follow.Value, width=50)
                 for index, line in enumerate(follow):
                     dc.DrawText(line, 100, 1750 + 60 * index)
@@ -171,39 +173,3 @@ class PrintOut(wx.Printout):
             return True
         else:
             return False
-
-
-class MyPrinter(wx.Printer):
-
-    def __init__(self, mv):
-        super().__init__(printdata)
-        self.mv = mv
-
-    # def onPageSetupDialog(self):
-    #     dlg = wx.PageSetupDialog(self.mv, data=self.pagesetupdialogdata)
-    #     ans = dlg.ShowModal()
-    #     if ans == wx.ID_OK:
-    #         self.pagesetupdialogdata = wx.PageSetupDialogData(
-    #             dlg.PageSetupData)
-    #         self.printdata = wx.PrintData(dlg.PageSetupData.PrintData)
-
-    # def onPrintPreview(self):
-
-    #     myprintout = My_Printout(self.mv)
-    #     if self.mv.drug_info.print_btn.IsEnabled():
-    #         myprintout2 = My_Printout(self.mv, 'Toa thuốc')
-    #     else:
-    #         myprintout2 = None
-    #     self.printdialogdata = self.createPrintDialogData()
-    #     printpreview = wx.PrintPreview(
-    #         myprintout, myprintout2, self.printdialogdata)
-    #     printpreview.SetZoom(100)
-    #     previewframe = wx.PreviewFrame(printpreview, self.mv, 'asd')
-    #     previewframe.Initialize()
-    #     previewframe.Maximize()
-    #     previewframe.Show()
-
-    # def onPrint(self):
-    #     printer = wx.Printer(data=wx.PrintDialogData(pd))
-    #     printout = My_Printout(self.mv)
-    #     printer.Print(self.mv, printout, False)
