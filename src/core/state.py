@@ -1,4 +1,5 @@
-from db.db_class import Patient, Visit, Warehouse, Linedrug
+from db.db_class import *
+from core import main_view
 import core.other_func as otf
 
 
@@ -8,34 +9,47 @@ import sqlite3
 class State():
     '''Manager data, appearance and button state'''
 
-    def __init__(self, mv):
+    def __init__(self, mv: 'main_view.MainView') -> None:
         self.mv = mv
         self.Init()
 
-    def Init(self):
-        self._patient: Patient | None = None
-        self._visit: Visit | None = None
+    def Init(self) -> None:
+        self._patient: PatientWithId | None = None
+        self._visit: VisitWithId | None = None
         self._warehouse: Warehouse | None = None
         self._visitlist: list[sqlite3.Row] = []
         self._linedruglist: list[sqlite3.Row] = []
-
         self.queuelist: list[sqlite3.Row] = self.get_queuelist()
         self.todaylist: list[sqlite3.Row] = self.get_todaylist()
-        self.warehouselist: list[Warehouse] = [Warehouse.parse(i) for i in self.mv.con.execute("SELECT * FROM warehouse").fetchall()]
+        self.warehouselist: list[Warehouse] = self.mv.con.selectall(
+            Warehouse)
+        self.sampleprescriptionlist: list[SamplePrescription] = self.mv.con.selectall(
+            SamplePrescription)
+
+    def refresh(self) -> None:
+        self.patient = None
+        self.visit = None
+        self.warehouse = None
+        self.visitlist = []
+        self.linedruglist = []
+        self.queuelist = self.get_queuelist()
+        self.todaylist = self.get_todaylist()
+        self.warehouselist = self.mv.con.selectall(Warehouse)
+        self.sampleprescriptionlist = self.mv.con.selectall(SamplePrescription)
 
     @property
-    def patient(self):
+    def patient(self) -> PatientWithId | None:
         return self._patient
 
     @patient.setter
-    def patient(self, p: Patient | None):
+    def patient(self, p: PatientWithId | None):
         self._patient = p
         if p:
             self.onPatientSelect(p)
         else:
             self.onPatientDeselect()
 
-    def onPatientSelect(self, p):
+    def onPatientSelect(self, p: PatientWithId) -> None:
         self.mv.name.ChangeValue(p.name)
         self.mv.gender.ChangeValue(str(p.gender))
         self.mv.birthdate.ChangeValue(p.birthdate.strftime("%d/%m/%Y"))
@@ -61,7 +75,7 @@ class State():
         self.mv.GetMenuBar().menuDeleteQueueList.Enable()
         self.mv.patient_book.GetPage(idx).SetFocus()
 
-    def onPatientDeselect(self):
+    def onPatientDeselect(self) -> None:
         self.mv.name.ChangeValue('')
         self.mv.gender.ChangeValue('')
         self.mv.birthdate.ChangeValue('')
@@ -87,18 +101,18 @@ class State():
         self.mv.GetMenuBar().menuDeleteQueueList.Enable(False)
 
     @property
-    def visit(self):
+    def visit(self) -> VisitWithId | None:
         return self._visit
 
     @visit.setter
-    def visit(self, v: Visit | None):
+    def visit(self, v: VisitWithId | None) -> None:
         self._visit = v
         if v:
             self.onVisitSelect(v)
         else:
             self.onVisitDeselect()
 
-    def onVisitSelect(self, v):
+    def onVisitSelect(self, v: VisitWithId) -> None:
         self.mv.diagnosis.ChangeValue(v.diagnosis)
         self.mv.vnote.ChangeValue(v.vnote or '')
         self.mv.weight.SetValue(v.weight)
@@ -117,7 +131,7 @@ class State():
         self.mv.GetMenuBar().menuDeleteVisit.Enable()
         self.mv.visit_list.SetFocus()
 
-    def onVisitDeselect(self):
+    def onVisitDeselect(self) -> None:
         self.mv.diagnosis.ChangeValue('')
         self.mv.vnote.ChangeValue('')
         self.mv.weight.SetValue(0)
@@ -137,25 +151,25 @@ class State():
         self.warehouse = None
 
     @property
-    def warehouse(self):
+    def warehouse(self) -> Warehouse | None:
         return self._warehouse
 
     @warehouse.setter
-    def warehouse(self, wh: Warehouse | None):
+    def warehouse(self, wh: Warehouse | None) -> None:
         self._warehouse = wh
         if wh:
             self.onWarehouseSelect(wh)
         else:
             self.onWarehouseDeselect()
 
-    def onWarehouseSelect(self, wh):
+    def onWarehouseSelect(self, wh) -> None:
         pg = self.mv.order_book.GetPage(0)
         pg.drug_picker.SetValue(wh.name)
         pg.usage_unit.SetLabel(wh.usage_unit)
         pg.sale_unit.SetLabel(wh.sale_unit if wh.sale_unit else wh.usage_unit)
         pg.drug_picker.SelectAll()
 
-    def onWarehouseDeselect(self):
+    def onWarehouseDeselect(self) -> None:
         pg = self.mv.order_book.GetPage(0)
         pg.drug_picker.ChangeValue('')
         pg.usage_unit.SetLabel('{Đơn vị}')
@@ -166,29 +180,29 @@ class State():
         pg.note.ChangeValue('')
 
     @property
-    def visitlist(self):
+    def visitlist(self) -> list[sqlite3.Row]:
         return self._visitlist
 
     @visitlist.setter
-    def visitlist(self, lv):
+    def visitlist(self, lv: list[sqlite3.Row]):
         self._visitlist = lv
         self.mv.visit_list.rebuild(lv)
 
     @property
-    def linedruglist(self):
+    def linedruglist(self) -> list[sqlite3.Row]:
         return self._linedruglist
 
     @linedruglist.setter
-    def linedruglist(self, lld):
+    def linedruglist(self, lld: list[sqlite3.Row]):
         self._linedruglist = lld
         self.mv.order_book.GetPage(0).drug_list.rebuild(lld)
 
-    def get_wh_by_id(self, id):
+    def get_wh_by_id(self, id: int):
         for wh in self.warehouselist:
             if id == wh.id:
                 return wh
 
-    def get_queuelist(self):
+    def get_queuelist(self) -> list[sqlite3.Row]:
         return self.mv.con.execute("""
             SELECT
                 p.id AS pid,
@@ -202,7 +216,7 @@ class State():
             ORDER BY ql.added_datetime ASC
         """).fetchall()
 
-    def get_todaylist(self):
+    def get_todaylist(self) -> list[sqlite3.Row]:
         return self.mv.con.execute("""
             SELECT
                 p.id AS pid,
@@ -218,14 +232,3 @@ class State():
             ) AS v
             ON v.patient_id = p.id
         """).fetchall()
-
-    def refresh(self):
-        self.patient = None
-        self.visit = None
-        self.warehouse = None
-        self.visitlist = []
-        self.linedruglist = []
-
-        self.queuelist = self.get_queuelist()
-        self.todaylist = self.get_todaylist()
-        self.warehouselist = self.mv.con.selectall(Warehouse)

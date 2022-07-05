@@ -6,18 +6,20 @@ from core.mainview_widgets.order_book import OrderBook
 from core.mainview_widgets.widgets import *
 from core.menu.menubar import MyMenuBar
 from core.accel import my_accel
+from db import db_func
 import wx
+from typing import Any
 
 
 class MainView(wx.Frame):
 
-    def __init__(self, parent, con, config):
+    def __init__(self, con: 'db_func.Connection', config:dict[str,Any]):
 
         # config
         super().__init__(
-            parent,
+            parent=None,
             title='PHẦN MỀM PHÒNG KHÁM TẠI NHÀ',
-            pos=(20, 20),
+            pos=(10, 10),
             size=window_size)
         self.SetBackgroundColour(background_color)
         self.SetMinClientSize(window_size)
@@ -85,7 +87,7 @@ class MainView(wx.Frame):
         self.updatequantitybtn = UpdateQuantityBtn(self)
         self.order_book = OrderBook(self)
         self.recheck = RecheckCtrl(self)
-        self.norecheck= NoRecheck(self)
+        self.norecheck = NoRecheck(self)
         self.price = PriceCtrl(self)
         self.follow = Follow(self)
         self.newvisitbtn = NewVisitBtn(self)
@@ -136,7 +138,7 @@ class MainView(wx.Frame):
         recheck_row = wx.BoxSizer(wx.HORIZONTAL)
         recheck_row.AddMany([
             static("Số ngày tái khám"),
-            widget(self.recheck,1),
+            widget(self.recheck, 1),
             widget(self.norecheck),
             (0, 0, 3),
             static("Giá tiền"),

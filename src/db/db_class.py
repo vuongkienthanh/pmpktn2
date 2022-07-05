@@ -2,11 +2,9 @@ import datetime as dt
 import enum
 from dataclasses import dataclass
 import dataclasses
-from typing import ClassVar, TypeVar
+from typing import ClassVar, TypeVar, NewType
 from decimal import Decimal
 import sqlite3
-
-T = TypeVar('T', bound='BASE')
 
 
 class Gender(enum.Enum):
@@ -17,6 +15,7 @@ class Gender(enum.Enum):
         return ["Nam", "Nữ"][self.value]
 
 
+@dataclass
 class BASE():
     table_name: ClassVar[str]
 
@@ -35,7 +34,7 @@ class BASE():
                     row[n] = dt.date.fromisoformat(row[n])
                 elif t == dt.datetime | None:
                     if row[n] == '':
-                        row[n] =None
+                        row[n] = None
                     else:
                         row[n] = dt.datetime.fromisoformat(row[n])
                 elif t == Decimal:
@@ -100,7 +99,7 @@ class Visit(BASE):
 
 
 @dataclass
-class Linedrug(BASE):
+class LineDrug(BASE):
     table_name = 'linedrugs'
     drug_id: int
     dose: str
@@ -128,6 +127,25 @@ class Warehouse(BASE):
     note: str | None = None
 
 
+@dataclass
+class SamplePrescription(BASE):
+    table_name = 'sampleprescription'
+    name: str
+    id: int | None = None
+
+
+@dataclass
+class LineSamplePrescription(BASE):
+    table_name = 'linesampleprescription'
+    drug_id: int
+    sample_id: int
+    dose: str
+    times: int
+    id: int | None = None
+
+
+##### helper classes #####
+
 class VisitWithoutTime(Visit):
     @classmethod
     def fields(cls) -> tuple[str]:
@@ -138,3 +156,16 @@ class QueueListWithoutTime(QueueList):
     @classmethod
     def fields(cls) -> tuple[str]:
         return tuple((f.name for f in dataclasses.fields(cls) if f.name not in ['id', 'added_datetime']))
+
+
+@dataclass
+class PatientWithId(Patient):
+    id: int
+
+
+@dataclass
+class VisitWithId(Visit):
+    id: int
+
+
+T = TypeVar('T', bound='BASE')

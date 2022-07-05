@@ -8,13 +8,15 @@ import argparse
 import os
 import sys
 import json
+from typing import Any
 
 
 class App(wx.App):
     def __init__(self, sample):
         super().__init__()
-        with open(os.path.join(APP_DIR, "config.json"), "r", encoding="utf-8") as f:
-            config = json.load(f)
+        
+        config = self.get_config()
+                
 
         from core.main_view import MainView
         if sample:
@@ -26,10 +28,17 @@ class App(wx.App):
         else:
             con = dbf.Connection(MY_DATABASE_PATH)
             con.make_db()
-        mv = MainView(None, con, config)
+        mv = MainView(con, config)
         self.SetTopWindow(mv)
         mv.Show()
         self.MainLoop()
+    
+    def get_config(self) ->dict[str, Any]:
+        with open(os.path.join(APP_DIR, "config.json"), "r", encoding="utf-8") as f:
+            config = json.load(f)
+            if not isinstance(config, dict):
+                sys.exit("ERROR: Config file is not a dict")
+        return config
 
 
 def mainloop(sample=False):

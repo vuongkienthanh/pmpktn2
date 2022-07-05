@@ -1,17 +1,15 @@
 from core.initialize import *
 from db.db_class import Gender, Patient, QueueList, QueueListWithoutTime
 import core.other_func as otf
-
 import datetime as dt
-import wx.adv as wxadv
-import wx
 import sqlite3
+import wx
+import wx.adv as adv
 
-
-class MyDatePicker(wxadv.CalendarCtrl):
+class MyDatePicker(adv.CalendarCtrl):
     def __init__(self, parent):
-        super().__init__(parent, style=wxadv.CAL_MONDAY_FIRST |
-                         wxadv.CAL_SHOW_SURROUNDING_WEEKS)
+        super().__init__(parent, style=adv.CAL_MONDAY_FIRST |
+                         adv.CAL_SHOW_SURROUNDING_WEEKS)
         self.SetDateRange(
             wx.DateTime.Today() - wx.DateSpan(years=100),
             wx.DateTime.Today()
@@ -47,7 +45,7 @@ class BasePatientDialog(wx.Dialog):
         self.birthdate_text.Bind(wx.EVT_TEXT, self.onBirthdateText)
         self.birthdate_text.Bind(
             wx.EVT_CHAR, lambda e: otf.only_nums(e, slash=True))
-        self.birthdate.Bind(wxadv.EVT_CALENDAR, self.onBirthdate)
+        self.birthdate.Bind(adv.EVT_CALENDAR, self.onBirthdate)
         self.address = wx.TextCtrl(self, style=wx.TE_MULTILINE)
         self.phone = wx.TextCtrl(self)
         self.phone.Bind(wx.EVT_CHAR, lambda e: otf.only_nums(e, decimal=True))

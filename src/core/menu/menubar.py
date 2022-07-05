@@ -5,6 +5,7 @@ from core.menu.find_patient_dialog import FindPatientDialog
 from core.menu.patient_dialog import EditPatientDialog, NewPatientDialog
 from core.menu.setup_dialog import SetupDialog
 from core.menu.warehouse_dialog import WarehouseSetupDialog
+from core.menu.sample_prescription_dialog import SampleDialog
 from core.printing.printer import PrintOut, printdata
 import wx
 import shutil
@@ -34,8 +35,10 @@ class MyMenuBar(wx.MenuBar):
 
         menuPatient = wx.Menu()
         menuPatient.Append(wx.ID_NEW, "Bệnh nhân mới")
-        self.menuUpdatePatient = menuPatient.Append(wx.ID_EDIT, "Cập nhật thông tin bệnh nhân\tCTRL+U")
-        self.menuDeletePatient = menuPatient.Append(wx.ID_DELETE, "Xóa bệnh nhân\tCTRL+D")
+        self.menuUpdatePatient = menuPatient.Append(
+            wx.ID_EDIT, "Cập nhật thông tin bệnh nhân\tCTRL+U")
+        self.menuDeletePatient = menuPatient.Append(
+            wx.ID_DELETE, "Xóa bệnh nhân\tCTRL+D")
         self.menuUpdatePatient.Enable(False)
         self.menuDeletePatient.Enable(False)
         editMenu.AppendSubMenu(menuPatient, "Bệnh nhân")
@@ -69,9 +72,9 @@ class MyMenuBar(wx.MenuBar):
         self.menuPrint.Enable(False)
         self.menuPreview.Enable(False)
 
-        warehouseMenu = wx.Menu()
-        menuWarehouseSetup = warehouseMenu.Append(wx.ID_ANY, "Xem kho thuốc")
-        
+        storeMenu = wx.Menu()
+        menuWarehouseSetup = storeMenu.Append(wx.ID_ANY, "Kho thuốc")
+        menuSampleSetup = storeMenu.Append(wx.ID_ANY, "Toa mẫu")
 
         settingMenu = wx.Menu()
         menuSetup = settingMenu.Append(wx.ID_ANY, "Cài đặt hệ thống")
@@ -80,8 +83,8 @@ class MyMenuBar(wx.MenuBar):
             wx.ID_ANY, "Khôi phục cài đặt gốc")
 
         self.Append(homeMenu, "&Home")
-        self.Append(editMenu, "&Edit")
-        self.Append(warehouseMenu, "&Kho thuốc")
+        self.Append(editMenu, "&Khám bệnh")
+        self.Append(storeMenu, "&Quản lý")
         self.Append(settingMenu, "&Cài đặt")
 
         self.Bind(wx.EVT_MENU, self.onRefresh, id=wx.ID_REFRESH)
@@ -95,11 +98,13 @@ class MyMenuBar(wx.MenuBar):
         self.Bind(wx.EVT_MENU, self.onInsertVisit, self.menuInsertVisit)
         self.Bind(wx.EVT_MENU, self.onUpdateVisit, self.menuUpdateVisit)
         self.Bind(wx.EVT_MENU, self.onDeleteVisit, self.menuDeleteVisit)
-        self.Bind(wx.EVT_MENU, self.onDeleteQueueList, self.menuDeleteQueueList)
+        self.Bind(wx.EVT_MENU, self.onDeleteQueueList,
+                  self.menuDeleteQueueList)
         self.Bind(wx.EVT_MENU, self.onUpdateQuantity, menuUpdateQuantity)
         self.Bind(wx.EVT_MENU, self.onPrint, self.menuPrint)
         self.Bind(wx.EVT_MENU, self.onPreview, self.menuPreview)
         self.Bind(wx.EVT_MENU, self.onWarehouseSetup, menuWarehouseSetup)
+        self.Bind(wx.EVT_MENU, self.onSampleSetup, menuSampleSetup)
         self.Bind(wx.EVT_MENU, self.onSetup, menuSetup)
         self.Bind(wx.EVT_MENU, self.onMenuJSON, menuJSON)
         self.Bind(wx.EVT_MENU, self.onResetSetting, menuResetSetting)
@@ -179,8 +184,11 @@ class MyMenuBar(wx.MenuBar):
         frame.Initialize()
         frame.Show()
 
-    def onWarehouseSetup(self,e):
+    def onWarehouseSetup(self, e):
         WarehouseSetupDialog(self.GetFrame()).ShowModal()
+
+    def onSampleSetup(self, e):
+        SampleDialog(mv=self.GetFrame()).ShowModal()
 
     def onSetup(self, e):
         SetupDialog(self.GetFrame()).ShowModal()

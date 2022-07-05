@@ -1,6 +1,5 @@
 from core.initialize import *
 import core.other_func as otf
-from db.db_class import Linedrug
 import wx
 
 

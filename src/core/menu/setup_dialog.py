@@ -15,7 +15,8 @@ class SetupDialog(wx.Dialog):
             self, initial=parent.config["so_ngay_toa_ve_mac_dinh"])
         self.alert = wx.SpinCtrl(
             self, initial=parent.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"], max=10000)
-        self.unit = adv.EditableListBox(self)
+        self.unit = adv.EditableListBox(self, style=adv.EL_DEFAULT_STYLE|adv.EL_NO_REORDER)
+        self.unit.GetListCtrl().DeleteAllItems()
         for item in parent.config["thuoc_ban_mot_don_vi"]:
             self.unit.GetListCtrl().Append((item,))
 

@@ -60,8 +60,9 @@ class Connection():
             CSVReader(Warehouse, f('warehouse.csv')),
             CSVReader(Patient, f('patients.csv')),
             CSVReader(Visit, f('visits.csv')),
-            CSVReader(Linedrug, f('linedrugs.csv')),
+            CSVReader(LineDrug, f('linedrugs.csv')),
             CSVReader(QueueList, f('queuelist.csv')),
+            CSVReader(SamplePrescription, f('sampleprescription.csv'))
         ]:
             self.insertmany(reader)
             reader.close()
@@ -133,6 +134,7 @@ class Connection():
         return [t.parse(row) for row in rows]
 
     def delete(self, base):
+        """Return rowcount"""
         with self.sqlcon as con:
             return con.execute(
                 f"DELETE FROM {base.table_name} WHERE id = {base.id}"

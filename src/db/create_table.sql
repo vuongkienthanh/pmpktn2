@@ -85,7 +85,29 @@ CREATE TABLE IF NOT EXISTS linedrugs (
     REFERENCES warehouse (id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
-  CHECK ( quantity > 0 AND times > 0 AND dose > 0)
+  CHECK ( quantity > 0 AND times > 0 AND dose != '')
+);
+
+CREATE TABLE IF NOT EXISTS sampleprescription (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS linesampleprescription (
+  id INTEGER PRIMARY KEY,
+  drug_id INTEGER NOT NULL,
+  sample_id INTEGER NOT NULL,
+  dose TEXT NOT NULL,
+  times INTEGER NOT NULL,
+  FOREIGN KEY (drug_id)
+    REFERENCES warehouse (id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY (sample_id)
+    REFERENCES sample (id)
+      ON DELETE CASCADE
+      ON UPDATE CASCADE,
+  CHECK (times > 0 AND dose != '')
 );
 
 CREATE TRIGGER IF NOT EXISTS linedrug_insert 

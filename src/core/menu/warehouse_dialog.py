@@ -1,15 +1,15 @@
-from multiprocessing.sharedctypes import Value
 from db.db_class import Warehouse
+import core.other_func as otf
+from core import main_view
 import wx
 import wx.adv as adv
-import core.other_func as otf
 
 
 class WarehouseSetupDialog(wx.Dialog):
-    def __init__(self, parent):
-        super().__init__(parent, title="Kho thuốc",
+    def __init__(self, mv:'main_view.MainView'):
+        super().__init__(parent=mv, title="Kho thuốc",
                          style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
-        self._list = parent.state.warehouselist
+        self._list = self.Parent.state.warehouselist
         self.search = wx.TextCtrl(self)
         self.search.SetHint("Tên thuốc hoặc thành phần thuốc")
         self.lc = self._create_listctrl()

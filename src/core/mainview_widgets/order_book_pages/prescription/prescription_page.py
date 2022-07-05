@@ -2,7 +2,7 @@ from tabnanny import check
 from core.initialize import *
 import platform
 
-from db.db_class import Linedrug
+from db.db_class import LineDrug
 if platform.system() in ['Linux', 'Darwin']:
     from core.mainview_widgets.order_book_pages.prescription.linux_drug_picker import DrugPicker
 else:

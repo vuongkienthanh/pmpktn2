@@ -28,7 +28,7 @@ class WeightCtrl(wx.SpinCtrlDouble):
             raise decimal.InvalidOperation("Cân nặng bằng 0")
         return Decimal(super().GetValue())
 
-    def SetValue(self, value: Decimal):
+    def SetValue(self, value: Decimal|int):
         super().SetValue(str(value))
 
 
@@ -201,7 +201,7 @@ class SaveBtn(wx.Button):
                 """, v.into_sql_args()).lastrowid
                 insert_ld = []
                 for item in self.Parent.order_book.GetPage(0).drug_list._list:
-                    insert_ld.append(Linedrug(
+                    insert_ld.append(LineDrug(
                         drug_id=item['drug_id'],
                         dose=item['dose'],
                         times=item['times'],
@@ -211,8 +211,8 @@ class SaveBtn(wx.Button):
                     ))
 
                 con.executemany(f"""
-                    INSERT INTO linedrugs ({Linedrug.fields_as_str()})
-                    VALUES ({Linedrug.fields_as_qmarks()})
+                    INSERT INTO linedrugs ({LineDrug.fields_as_str()})
+                    VALUES ({LineDrug.fields_as_qmarks()})
                 """, (ld.into_sql_args() for ld in insert_ld))
             wx.MessageBox("Lưu lượt khám mới thành công", "Lưu lượt khám mới")
             if wx.MessageBox("In toa về?", "In toa", style=wx.YES | wx.NO) == wx.YES:
@@ -274,7 +274,7 @@ class SaveBtn(wx.Button):
             # insert those in drug_list but not in update
             for i in drug_list:
                 if i['drug_id'] not in update_drug_id:
-                    insert_ld.append(Linedrug(
+                    insert_ld.append(LineDrug(
                         drug_id=i['drug_id'],
                         dose=i['dose'],
                         times=i['times'],
@@ -302,8 +302,8 @@ class SaveBtn(wx.Button):
                     "DELETE FROM linedrugs WHERE id = ?",
                     delete_ld)
                 con.executemany(f"""
-                    INSERT INTO linedrugs ({Linedrug.fields_as_str()})
-                    VALUES ({Linedrug.fields_as_qmarks()})
+                    INSERT INTO linedrugs ({LineDrug.fields_as_str()})
+                    VALUES ({LineDrug.fields_as_qmarks()})
                 """, (ld.into_sql_args() for ld in insert_ld))
 
             wx.MessageBox("Cập nhật lượt khám thành công",
