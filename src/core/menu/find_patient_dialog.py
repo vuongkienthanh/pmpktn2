@@ -1,6 +1,6 @@
 from core.initialize import *
 from core.menu.patient_dialog import EditPatientDialog
-from db.db_class import Patient, QueueList, QueueListWithoutTime
+from db.db_class import Patient, QueueList,QueueList
 import wx
 import sqlite3
 
@@ -219,7 +219,7 @@ class FindPatientDialog(wx.Dialog):
         pid = self.listctrl.pid
         if pid:
             try:
-                self.Parent.con.insert(QueueListWithoutTime(patient_id=pid))
+                self.Parent.con.insert(PreQueueList(patient_id=pid))
                 wx.MessageBox("Thêm vào danh sách chờ thành công", "OK")
                 self.Parent.refresh()
             except sqlite3.IntegrityError as error:

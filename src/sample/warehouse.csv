@@ -1,12 +1,12 @@
-name,element,quantity,usage_unit,usage,sale_unit,purchase_price,sale_price,expire_date,made_by,note
-Acyclovir 400,Acyclovir,50,viên,uống,,1,1,,,aaaa
-Acyclovir 200,Acyclovir,50,viên,uống,,2,2,,,bbb
-Nyst,Nystatin  25 000 UI,100,gói,uống,,3,3,,,ccc
-Clamoxyl 250,Amoxicilin,68,gói,uống,,4,4,,,ddd
-Cefpodoxime 100,Cefpodoxim,420,gói,uống,,5,5,,,eee
-Cefixim 100,Cefixim,10,Gói ,uống,,6,6,,,fff
-Cefixim 200,Cefixim,100,viên,uống,,7,7,,,ggg
-Efodyl,Cefuroxim ,20,gói,uống,,8,8,,,hhh
-Qincef 125,Cefuroxim,20,gói,uống,,9,9,,,ii
-Cefuroxim 250,Cefuroxim,20,viên,uống,,10,10,,,jj
-Hoastex,Hoastex,100,ml,uống,chai,10000,12000,2025-12-31,,kkk
+id,name,element,quantity,usage_unit,usage,sale_unit,purchase_price,sale_price,expire_date,made_by,note
+1,Acyclovir 400,Acyclovir,50,viên,uống,,1,1,,,aaaa
+2,Acyclovir 200,Acyclovir,50,viên,uống,,2,2,,,bbb
+3,Nyst,Nystatin  25 000 UI,100,gói,uống,,3,3,,,ccc
+4,Clamoxyl 250,Amoxicilin,68,gói,uống,,4,4,,,ddd
+5,Cefpodoxime 100,Cefpodoxim,420,gói,uống,,5,5,,,eee
+6,Cefixim 100,Cefixim,10,Gói ,uống,,6,6,,,fff
+7,Cefixim 200,Cefixim,100,viên,uống,,7,7,,,ggg
+8,Efodyl,Cefuroxim ,20,gói,uống,,8,8,,,hhh
+9,Qincef 125,Cefuroxim,20,gói,uống,,9,9,,,ii
+10,Cefuroxim 250,Cefuroxim,20,viên,uống,,10,10,,,jj
+11,Hoastex,Hoastex,100,ml,uống,chai,10000,12000,2025-12-31,,kkk

@@ -72,8 +72,8 @@ CREATE INDEX IF NOT EXISTS drug_element
 CREATE TABLE IF NOT EXISTS linedrugs (
   id INTEGER PRIMARY KEY,
   drug_id INTEGER NOT NULL,
-  dose TEXT NOT NULL, -- liều 1 cữ
   times INTEGER NOT NULL,-- số cữ
+  dose TEXT NOT NULL, -- liều 1 cữ
   quantity INTEGER NOT NULL, -- số lượng bán ra
   visit_id INTEGER NOT NULL,
   note TEXT, -- thay thế cách dùng mặc định
@@ -97,14 +97,14 @@ CREATE TABLE IF NOT EXISTS linesampleprescription (
   id INTEGER PRIMARY KEY,
   drug_id INTEGER NOT NULL,
   sample_id INTEGER NOT NULL,
-  dose TEXT NOT NULL,
   times INTEGER NOT NULL,
+  dose TEXT NOT NULL,
   FOREIGN KEY (drug_id)
     REFERENCES warehouse (id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY (sample_id)
-    REFERENCES sample (id)
+    REFERENCES sampleprescription (id)
       ON DELETE CASCADE
       ON UPDATE CASCADE,
   CHECK (times > 0 AND dose != '')

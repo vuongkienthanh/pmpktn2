@@ -1,20 +1,130 @@
+from core.initialize import k_number, k_special, k_decimal, k_hash, k_slash
 import core.other_func as otf
 from db.db_class import *
 from core.printing.printer import PrintOut, printdata
 from path_init import weight_bm
 
 import wx
+import wx.adv
+import datetime as dt
 from decimal import Decimal
 import decimal
 from itertools import cycle
+from typing import TypeVar
+
+TC = TypeVar('TC', bound=wx.TextCtrl)
 
 
-class DisabledTextCtrl(wx.TextCtrl):
+def disable_text_ctrl(w: TC) -> TC:
+    w.Disable()
+    w.SetBackgroundColour(wx.Colour(168, 168, 168))
+    w.SetForegroundColour(wx.Colour(0, 0, 0))
+    return w
+
+
+class DatePicker(wx.adv.CalendarCtrl):
+    def __init__(self, parent):
+        super().__init__(parent, style=wx.adv.CAL_MONDAY_FIRST |
+                         wx.adv.CAL_SHOW_SURROUNDING_WEEKS)
+
+    def GetDate(self) -> dt.date:
+        return wx.wxdate2pydate(super().GetDate()).date()
+
+    def SetDate(self, date: dt.date) -> None:
+        has_range, lower_bound, upper_bound = self.GetDateRange()
+        if has_range:
+            lower_bound = wx.wxdate2pydate(lower_bound).date()
+            upper_bound = wx.wxdate2pydate(upper_bound).date()
+            if date > upper_bound:
+                date = upper_bound
+            elif date < lower_bound:
+                date = lower_bound
+        super().SetDate(wx.pydate2wxdate(date))
+
+
+class DateTextCtrl(wx.TextCtrl):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.SetHint("DD/MM/YYYY")
+        self.format = "%d/%m/%Y"
+        self.bg = self.GetBackgroundColour()
+        self.Bind(wx.EVT_CHAR, self.onChar)
+
+    def onChar(self, e: wx.KeyEvent):
+        s = e.GetEventObject().GetValue()
+        if e.KeyCode in k_special:
+            e.Skip()
+        elif e.KeyCode in k_number + k_slash and len(s) < 10:
+            if e.KeyCode == 47:
+                if s.count('/') < 2:
+                    e.Skip()
+            else:
+                e.Skip()
+
+    def GetDate(self) -> dt.date:
+        return dt.datetime.strptime(self.GetValue(), self.format).date()
+
+    def ChangeDate(self, date: dt.date):
+        self.ChangeValue(date.strftime(self.format))
+
+    def is_valid(self) -> bool:
+        try:
+            dt.datetime.strptime(self.GetValue(), self.format)
+            return True
+        except ValueError:
+            return False
+
+
+class AgeCtrl(wx.TextCtrl):
     def __init__(self, parent):
         super().__init__(parent, style=wx.TE_READONLY)
         self.Disable()
-        self.SetBackgroundColour(wx.Colour(168, 168, 168))
-        self.SetForegroundColour(wx.Colour(0, 0, 0))
+
+    def SetBirthdate(self, bd: dt.date):
+        today = dt.date.today()
+        delta = (today - bd).days
+        if delta <= 60:
+            age = f'{delta} ngày tuổi'
+        elif delta <= (30 * 24):
+            age = f'{int(delta / 30)} tháng tuổi'
+        else:
+            age = f'{today.year - bd.year - ((today.month, today.day) < (bd.month, bd.day))} tuổi'
+        self.SetValue(age)
+
+
+class GenderChoice(wx.Choice):
+    def __init__(self, parent):
+        super().__init__(parent, choices=[
+            str(Gender(0)),
+            str(Gender(1))
+        ])
+        self.Selection = 0
+
+    def GetGender(self) -> Gender:
+        return Gender(self.Selection)
+
+    def SetGender(self, gender: Gender):
+        self.SetSelection(gender.value)
+
+
+class PhoneTextCtrl(wx.TextCtrl):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.Bind(wx.EVT_CHAR, self.onChar)
+
+    def onChar(self, e: wx.KeyEvent):
+        if e.KeyCode in k_number + k_special + k_decimal + k_hash:
+            e.Skip()
+
+
+class NumTextCtrl(wx.TextCtrl):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.Bind(wx.EVT_CHAR, self.onChar)
+
+    def onChar(self, e: wx.KeyEvent):
+        if e.KeyCode in k_number:
+            e.Skip()
 
 
 class WeightCtrl(wx.SpinCtrlDouble):
@@ -28,7 +138,7 @@ class WeightCtrl(wx.SpinCtrlDouble):
             raise decimal.InvalidOperation("Cân nặng bằng 0")
         return Decimal(super().GetValue())
 
-    def SetValue(self, value: Decimal|int):
+    def SetValue(self, value: Decimal | int):
         super().SetValue(str(value))
 
 
@@ -39,8 +149,10 @@ class DaysCtrl(wx.SpinCtrl):
         self.SetRange(0, 200)
         self.Bind(wx.EVT_SPINCTRL, self.onSpin)
         self.Disable()
+
     def onSpin(self, e):
         self.Parent.recheck.SetValue(e.GetPosition())
+
 
 class RecheckCtrl(wx.SpinCtrl):
     def __init__(self, parent):
@@ -49,11 +161,13 @@ class RecheckCtrl(wx.SpinCtrl):
         self.SetRange(0, 200)
         self.Disable()
 
+
 class NoRecheck(wx.Button):
     def __init__(self, parent):
         super().__init__(parent, label="Không tái khám")
         self.Bind(wx.EVT_BUTTON, self.onClick)
         self.Disable()
+
     def onClick(self, e):
         self.Parent.recheck.SetValue(0)
 
@@ -80,7 +194,7 @@ class UpdateQuantityBtn(wx.Button):
         self.Parent.price.set_price()
 
 
-class PriceCtrl(DisabledTextCtrl):
+class PriceCtrl(wx.TextCtrl):
 
     def set_price(self):
         lld = ((item['drug_id'], item['quantity'])
@@ -181,7 +295,7 @@ class SaveBtn(wx.Button):
                 raise ValueError
             p = self.Parent.state.patient
             p.past_history = self.Parent.past_history.GetValue().strip()
-            v = VisitWithoutTime(
+            v = Visit(
                 diagnosis=diagnosis,
                 weight=self.Parent.weight.GetValue(),
                 days=self.Parent.days.GetValue(),
@@ -196,8 +310,8 @@ class SaveBtn(wx.Button):
                     WHERE id = {p.id}
                 """, (p.past_history,))
                 vid = con.execute(f"""
-                    INSERT INTO visits ({VisitWithoutTime.fields_as_str()})
-                    VALUES ({VisitWithoutTime.fields_as_qmarks()})
+                    INSERT INTO visits ({Visit.fields_as_str()})
+                    VALUES ({Visit.fields_as_qmarks()})
                 """, v.into_sql_args()).lastrowid
                 insert_ld = []
                 for item in self.Parent.order_book.GetPage(0).drug_list._list:

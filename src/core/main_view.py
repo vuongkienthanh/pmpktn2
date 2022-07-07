@@ -3,7 +3,7 @@ from core.state import State
 from core.mainview_widgets.patient_book import PatientBook
 from core.mainview_widgets.visit_list import VisitList
 from core.mainview_widgets.order_book import OrderBook
-from core.mainview_widgets.widgets import *
+from core.widgets import *
 from core.menu.menubar import MyMenuBar
 from core.accel import my_accel
 from db import db_func
@@ -72,12 +72,12 @@ class MainView(wx.Frame):
         return sizer
 
     def _create_right_widgets(self):
-        self.name = DisabledTextCtrl(self)
-        self.gender = DisabledTextCtrl(self)
-        self.birthdate = DisabledTextCtrl(self)
-        self.age = DisabledTextCtrl(self)
-        self.phone = DisabledTextCtrl(self)
-        self.address = DisabledTextCtrl(self)
+        self.name = disable_text_ctrl(wx.TextCtrl(self))
+        self.gender = disable_text_ctrl(wx.TextCtrl(self))
+        self.birthdate = disable_text_ctrl(DateTextCtrl(self))
+        self.age = disable_text_ctrl(AgeCtrl(self))
+        self.phone = disable_text_ctrl(PhoneTextCtrl(self))
+        self.address = disable_text_ctrl(wx.TextCtrl(self))
         self.past_history = wx.TextCtrl(self, style=wx.TE_MULTILINE)
         self.diagnosis = wx.TextCtrl(self)
         self.vnote = wx.TextCtrl(self, style=wx.TE_MULTILINE)
@@ -88,7 +88,7 @@ class MainView(wx.Frame):
         self.order_book = OrderBook(self)
         self.recheck = RecheckCtrl(self)
         self.norecheck = NoRecheck(self)
-        self.price = PriceCtrl(self)
+        self.price = disable_text_ctrl(PriceCtrl(self))
         self.follow = Follow(self)
         self.newvisitbtn = NewVisitBtn(self)
         self.savebtn = SaveBtn(self)

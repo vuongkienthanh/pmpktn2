@@ -14,8 +14,8 @@ class State():
         self.Init()
 
     def Init(self) -> None:
-        self._patient: PatientWithId | None = None
-        self._visit: VisitWithId | None = None
+        self._patient: Patient | None = None
+        self._visit: Visit | None = None
         self._warehouse: Warehouse | None = None
         self._visitlist: list[sqlite3.Row] = []
         self._linedruglist: list[sqlite3.Row] = []
@@ -38,18 +38,18 @@ class State():
         self.sampleprescriptionlist = self.mv.con.selectall(SamplePrescription)
 
     @property
-    def patient(self) -> PatientWithId | None:
+    def patient(self) -> Patient | None:
         return self._patient
 
     @patient.setter
-    def patient(self, p: PatientWithId | None):
+    def patient(self, p: Patient | None):
         self._patient = p
         if p:
             self.onPatientSelect(p)
         else:
             self.onPatientDeselect()
 
-    def onPatientSelect(self, p: PatientWithId) -> None:
+    def onPatientSelect(self, p: Patient) -> None:
         self.mv.name.ChangeValue(p.name)
         self.mv.gender.ChangeValue(str(p.gender))
         self.mv.birthdate.ChangeValue(p.birthdate.strftime("%d/%m/%Y"))
@@ -101,18 +101,18 @@ class State():
         self.mv.GetMenuBar().menuDeleteQueueList.Enable(False)
 
     @property
-    def visit(self) -> VisitWithId | None:
+    def visit(self) -> Visit | None:
         return self._visit
 
     @visit.setter
-    def visit(self, v: VisitWithId | None) -> None:
+    def visit(self, v: Visit | None) -> None:
         self._visit = v
         if v:
             self.onVisitSelect(v)
         else:
             self.onVisitDeselect()
 
-    def onVisitSelect(self, v: VisitWithId) -> None:
+    def onVisitSelect(self, v: Visit) -> None:
         self.mv.diagnosis.ChangeValue(v.diagnosis)
         self.mv.vnote.ChangeValue(v.vnote or '')
         self.mv.weight.SetValue(v.weight)

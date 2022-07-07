@@ -1,6 +1,7 @@
 import wx
 import datetime as dt
 from fractions import Fraction
+from typing import Any
 
 
 def bd_to_age(bd: dt.date):
@@ -36,11 +37,11 @@ def get_note_str(usage, times, dose, usage_unit):
     return f"{usage} ngày {times} lần, lần {dose} {usage_unit}"
 
 
-def check_blank(val):
+def check_blank(val: str):
     return None if val.strip() == '' else val.strip()
 
 
-def check_none(val):
+def check_none(val: Any|None):
     return str(val) if val else ''
 
 

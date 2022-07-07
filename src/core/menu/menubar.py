@@ -188,7 +188,7 @@ class MyMenuBar(wx.MenuBar):
         WarehouseSetupDialog(self.GetFrame()).ShowModal()
 
     def onSampleSetup(self, e):
-        SampleDialog(mv=self.GetFrame()).ShowModal()
+        SampleDialog(parent=self.GetFrame()).ShowModal()
 
     def onSetup(self, e):
         SetupDialog(self.GetFrame()).ShowModal()

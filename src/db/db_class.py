@@ -2,7 +2,7 @@ import datetime as dt
 import enum
 from dataclasses import dataclass
 import dataclasses
-from typing import ClassVar, TypeVar, NewType
+from typing import ClassVar, TypeVar
 from decimal import Decimal
 import sqlite3
 
@@ -18,35 +18,16 @@ class Gender(enum.Enum):
 @dataclass
 class BASE():
     table_name: ClassVar[str]
+    have_default: ClassVar[list[str]]
 
     @classmethod
-    def parse(cls, row):
-        if isinstance(row, sqlite3.Row):
-            return cls(**row)  # type:ignore
-        elif isinstance(row, dict):
-            # for csv.Reader, maybe others in future
-            for n, t in cls.__annotations__.items():
-                if t == int:
-                    row[n] = int(row[n])
-                elif t == Gender:
-                    row[n] = Gender(int(row[n]))
-                elif t == dt.date:
-                    row[n] = dt.date.fromisoformat(row[n])
-                elif t == dt.datetime | None:
-                    if row[n] == '':
-                        row[n] = None
-                    else:
-                        row[n] = dt.datetime.fromisoformat(row[n])
-                elif t == Decimal:
-                    row[n] = Decimal(row[n])
-                elif t == str | None:
-                    if row[n] == '':
-                        row[n] = None
-            return cls(**row)  # type:ignore
+    def parse(cls, row:sqlite3.Row):
+        return cls(**row)  # type:ignore
+
 
     @classmethod
     def fields(cls,) -> tuple[str]:
-        return tuple((f.name for f in dataclasses.fields(cls) if f.name != 'id'))
+        return tuple((f.name for f in dataclasses.fields(cls) if f.name not in cls.have_default))
 
     @classmethod
     def fields_as_str(cls) -> str:
@@ -56,6 +37,9 @@ class BASE():
     def fields_as_qmarks(cls) -> str:
         num_of_qmark = len(cls.fields())
         return ','.join(['?'] * num_of_qmark)
+    @classmethod
+    def fields_as_names(cls) -> str:
+        return ','.join([f":{f}" for f in cls.fields()])
 
     def into_sql_args(self) -> tuple:
         return tuple((getattr(self, attr) for attr in self.fields()))
@@ -67,10 +51,11 @@ class BASE():
 @dataclass
 class Patient(BASE):
     table_name = 'patients'
+    have_default = ['id']
+    id: int 
     name: str
     gender: Gender
     birthdate: dt.date
-    id: int | None = None
     address: str | None = None
     phone: str | None = None
     past_history: str | None = None
@@ -79,40 +64,45 @@ class Patient(BASE):
 @dataclass
 class QueueList(BASE):
     table_name = 'queuelist'
+    have_default = ['id', 'added_datetime']
+    id: int
+    added_datetime: dt.datetime
     patient_id: int
-    added_datetime: dt.datetime | None = None
-    id: int | None = None
 
 
 @dataclass
 class Visit(BASE):
     table_name = 'visits'
+    have_default = ['id', 'exam_datetime']
+    id: int
+    exam_datetime: dt.datetime
     diagnosis: str
     weight: Decimal
     days: int
     recheck: int
     patient_id: int
     follow: str | None = None
-    id: int | None = None
-    exam_datetime: dt.datetime | None = None
     vnote: str | None = None
 
 
 @dataclass
 class LineDrug(BASE):
     table_name = 'linedrugs'
+    have_default = ['id']
+    id: int
     drug_id: int
     dose: str
     times: int
     quantity: int
     visit_id: int
-    id: int | None = None
     note: str | None = None
 
 
 @dataclass
 class Warehouse(BASE):
     table_name = 'warehouse'
+    have_default = ['id']
+    id: int
     name: str
     element: str
     quantity: int
@@ -120,7 +110,6 @@ class Warehouse(BASE):
     usage: str
     purchase_price: int
     sale_price: int
-    id: int | None = None
     sale_unit: str | None = None
     expire_date: dt.date | None = None
     made_by: str | None = None
@@ -130,42 +119,20 @@ class Warehouse(BASE):
 @dataclass
 class SamplePrescription(BASE):
     table_name = 'sampleprescription'
+    have_default = ['id']
+    id: int
     name: str
-    id: int | None = None
 
 
 @dataclass
 class LineSamplePrescription(BASE):
     table_name = 'linesampleprescription'
+    have_default = ['id']
+    id: int
     drug_id: int
     sample_id: int
     dose: str
     times: int
-    id: int | None = None
-
-
-##### helper classes #####
-
-class VisitWithoutTime(Visit):
-    @classmethod
-    def fields(cls) -> tuple[str]:
-        return tuple((f.name for f in dataclasses.fields(cls) if f.name not in ['id', 'exam_datetime']))
-
-
-class QueueListWithoutTime(QueueList):
-    @classmethod
-    def fields(cls) -> tuple[str]:
-        return tuple((f.name for f in dataclasses.fields(cls) if f.name not in ['id', 'added_datetime']))
-
-
-@dataclass
-class PatientWithId(Patient):
-    id: int
-
-
-@dataclass
-class VisitWithId(Visit):
-    id: int
 
 
 T = TypeVar('T', bound='BASE')

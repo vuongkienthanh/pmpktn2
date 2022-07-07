@@ -62,19 +62,28 @@ class Connection():
             CSVReader(Visit, f('visits.csv')),
             CSVReader(LineDrug, f('linedrugs.csv')),
             CSVReader(QueueList, f('queuelist.csv')),
-            CSVReader(SamplePrescription, f('sampleprescription.csv'))
+            CSVReader(SamplePrescription, f('sampleprescription.csv')),
+            CSVReader(LineSamplePrescription, f('linesampleprescription.csv')),
         ]:
-            self.insertmany(reader)
+            with self.sqlcon as con:
+                con.executemany(f"""
+                    INSERT INTO {reader.t.table_name} ({','.join(reader.fields)})
+                    VALUES ({','.join(['?']* len(reader.fields))})
+                """, (
+                    tuple(getattr(row, attr)
+                          for attr in reader.fields)
+                    for row in reader
+                ))
             reader.close()
-        self.insert(VisitWithoutTime(
-            diagnosis="Viêm ruột thừa",
-            weight=decimal.Decimal(10),
-            days=2,
-            recheck=2,
-            patient_id=1,
-            follow="follow",
-            vnote="dynamic created"
-        ))
+        self.insert(Visit, {
+            "diagnosis": "Viêm ruột thừa",
+            "weight": decimal.Decimal(10),
+            "days": 2,
+            "recheck": 2,
+            "patient_id": 1,
+            "follow": "follow",
+            "vnote": "dynamic created"
+        })
 
     def __enter__(self):
         return self.sqlcon.__enter__()
@@ -82,41 +91,20 @@ class Connection():
     def __exit__(self, exc_type, exc_value, exc_traceback):
         return self.sqlcon.__exit__(exc_type, exc_value, exc_traceback)
 
-    def execute(self, *args, **kwargs):
-        return self.sqlcon.execute(*args, **kwargs)
+    def execute(self, sql, *args, **kwargs):
+        return self.sqlcon.execute(sql, *args, **kwargs)
 
-    def insert(self, base: BASE) -> tuple[int, int] | None:
-        t = type(base)
+    def insert(self, t: type[BASE], base: dict) -> tuple[int, int] | None:
         with self.sqlcon as con:
-            cur = con.execute(
-                f"INSERT INTO {t.table_name} ({t.fields_as_str()})\
-                VALUES ({t.fields_as_qmarks()})",
-                base.into_sql_args()
-            )
+            cur = con.execute(f"""
+                INSERT INTO {t.table_name} ({t.fields_as_str()})
+                VALUES ({t.fields_as_names()})
+            """,
+                              base
+                              )
             if cur.lastrowid is None:
                 raise Exception("lastrowid is None")
             return (cur.lastrowid, cur.rowcount)
-
-    @overload
-    def insertmany(self, reader: CSVReader) -> int | None: ...
-
-    @overload
-    def insertmany(self, reader: Iterable[T],
-                   t: type[T]) -> int | None: ...
-
-    def insertmany(self, reader, t=None):
-        if isinstance(reader, CSVReader):
-            t = reader.get_type()
-        elif t is None:
-            raise TypeError('t should be the reference class')
-
-        with self.sqlcon as con:
-            rowcount = con.executemany(
-                f"INSERT INTO {t.table_name} ({t.fields_as_str()})\
-                VALUES ({t.fields_as_qmarks()})",
-                (base.into_sql_args() for base in reader)
-            ).rowcount
-            return rowcount
 
     def select(self, t: type[T], id: int) -> T | None:
         row = self.execute(
@@ -140,7 +128,7 @@ class Connection():
                 f"DELETE FROM {base.table_name} WHERE id = {base.id}"
             ).rowcount
 
-    def delete_id(self, t: type[BASE], id:int)->int|None:
+    def delete_by_id(self, t: type[BASE], id: int) -> int | None:
         with self.sqlcon as con:
             return con.execute(
                 f"DELETE FROM {t.table_name} WHERE id = {id}"
@@ -149,18 +137,19 @@ class Connection():
     def update(self, base: BASE) -> int | None:
         t = type(base)
         with self.sqlcon as con:
-            query = f"""
+            return con.execute(f"""
                 UPDATE {t.table_name} SET ({t.fields_as_str()})
                 = ({t.fields_as_qmarks()})
                 WHERE id = {base.id}
-            """
-            cur = con.execute(query, base.into_sql_args())
-            return cur.rowcount
+            """,
+                               base.into_sql_args()
+                               ).rowcount
 
 
 #########################################################################
 #########################################################################
 #########################################################################
+
 
     def select_visits_by_patient_id(self, pid: int, limit: int = -1) -> list[sqlite3.Row]:
         query = f"""

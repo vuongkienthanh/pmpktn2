@@ -1,59 +1,44 @@
 from core.initialize import *
-from db.db_class import Gender, Patient, QueueList, QueueListWithoutTime
+from db.db_class import Patient, Patient, QueueList, QueueList
 import core.other_func as otf
-import datetime as dt
+from core.widgets import DatePicker, GenderChoice, PhoneTextCtrl, DateTextCtrl, AgeCtrl
+from core import main_view
 import sqlite3
 import wx
 import wx.adv as adv
 
-class MyDatePicker(adv.CalendarCtrl):
-    def __init__(self, parent):
-        super().__init__(parent, style=adv.CAL_MONDAY_FIRST |
-                         adv.CAL_SHOW_SURROUNDING_WEEKS)
-        self.SetDateRange(
-            wx.DateTime.Today() - wx.DateSpan(years=100),
-            wx.DateTime.Today()
-        )
-
-    def GetDate(self) -> dt.date:
-        return wx.wxdate2pydate(super().GetDate()).date()
-
-    def SetDate(self, date: dt.date) -> None:
-        super().SetDate(wx.pydate2wxdate(date))
 
 
 class BasePatientDialog(wx.Dialog):
-    def __init__(self, parent, title):
+    def __init__(self, parent:'main_view.MainView', title):
         super().__init__(
             parent,
             title=title,
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
         )
         self.locale = wx.Locale(wx.LANGUAGE_VIETNAMESE)
+        self.mv = parent
 
         self.name = wx.TextCtrl(self, size=(300, -1))
-        self.gender = wx.Choice(self, choices=[
-            str(Gender(0)),
-            str(Gender(1))
-        ])
-        self.gender.Selection = 0
-        self.birthdate_text = wx.TextCtrl(self)
-        self.birthdate_text.SetHint("DD/MM/YYYY")
-        self.birthdate = MyDatePicker(self)
-        self.age = wx.TextCtrl(self, style=wx.TE_READONLY)
-        self.age.Disable()
+        self.gender = GenderChoice(self)
+        # birthdate group
+        self.birthdate_text = DateTextCtrl(self)
+        self.birthdate = DatePicker(self)
+        self.birthdate.SetDateRange(
+            wx.DateTime.Today() - wx.DateSpan(years=100),
+            wx.DateTime.Today()
+        )
+        self.age = AgeCtrl(self)
         self.birthdate_text.Bind(wx.EVT_TEXT, self.onBirthdateText)
-        self.birthdate_text.Bind(
-            wx.EVT_CHAR, lambda e: otf.only_nums(e, slash=True))
-        self.birthdate.Bind(adv.EVT_CALENDAR, self.onBirthdate)
-        self.address = wx.TextCtrl(self, style=wx.TE_MULTILINE)
-        self.phone = wx.TextCtrl(self)
-        self.phone.Bind(wx.EVT_CHAR, lambda e: otf.only_nums(e, decimal=True))
-        self.past_history = wx.TextCtrl(
-            self, style=wx.TE_MULTILINE)
+        self.birthdate.Bind(adv.EVT_CALENDAR_SEL_CHANGED, self.onBirthdate)
 
+        self.address = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        self.phone = PhoneTextCtrl(self)
+        self.past_history = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        self.cancelbtn = wx.Button(self, id=wx.ID_CANCEL)
+        self.okbtn = wx.Button(self, id=wx.ID_OK)
         self._setSizer()
-        self._bindOkBtn()
+        self.okbtn.Bind(wx.EVT_BUTTON, self.onOkBtn)
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
     def onOkBtn(self, e) -> None: ...
@@ -62,36 +47,43 @@ class BasePatientDialog(wx.Dialog):
         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         e.Skip()
 
-    def onBirthdateText(self, e):
+    def onBirthdateText(self, e:wx.CommandEvent):
         s = e.GetString()
-        if len(s) == 10:
-            d, m, y = self.birthdate_text.GetValue().split("/")
-            bd = wx.DateTime.FromDMY(int(d), int(m), int(y))
-            _, lower, upper = self.birthdate.GetDateRange()
-            if bd > upper:
-                bd = upper
-            if bd < lower:
-                bd = lower
-            bd = wx.wxdate2pydate(bd).date()
-            self.birthdate.SetDate(bd)
-            self.age.ChangeValue(otf.bd_to_age(bd))
+        if len(s) == 10 and self.birthdate_text.is_valid():
+            date = self.birthdate_text.GetDate()
+            self.birthdate.SetDate(date)
+            self.age.SetBirthdate(date)
             e.Skip()
+        else:
+            self.birthdate_text.SetToolTip("Sai ngày sinh")
 
-    def onBirthdate(self, e):
-        self.age.ChangeValue(otf.bd_to_age(self.birthdate.GetDate()))
-        self.birthdate_text.ChangeValue(
-            self.birthdate.GetDate().strftime("%d/%m/%Y"))
+    def onBirthdate(self, e:adv.CalendarEvent):
+        date = self.birthdate.GetDate()
+        self.age.SetBirthdate(date)
+        self.birthdate_text.ChangeDate(date)
         e.Skip()
 
     def get_patient(self):
         return Patient(
-            name=self.name.Value.upper(),
-            gender=Gender(self.gender.Selection),
+            name=self.name.Value.strip().upper(),
+            gender=self.gender.GetGender(),
             birthdate=self.birthdate.GetDate(),
             address=otf.check_blank(self.address.Value),
             phone=otf.check_blank(self.phone.Value),
             past_history=otf.check_blank(self.past_history.Value)
         )
+    
+    def is_valid(self) -> bool:
+        return all([
+            self.name.Value.strip() != '',
+            self.birthdate_text.is_valid()
+        ])
+    
+    def show_error(self):
+        if self.name.Value.strip() == '':
+            wx.MessageBox("Chưa nhập tên bệnh nhân", "Lỗi")
+        elif self.birthdate_text.Value.strip() == '':
+            wx.MessageBox("Chưa nhập ngày sinh", "Lỗi")
 
     def _setSizer(self):
 
@@ -100,11 +92,11 @@ class BasePatientDialog(wx.Dialog):
 
         def widget(s):
             return (s, 10, wx.EXPAND)
-        entry_sizer = wx.FlexGridSizer(rows=8, cols=2, vgap=5, hgap=2)
-        entry_sizer.AddGrowableCol(1, 3)
-        entry_sizer.AddGrowableRow(5, 3)
-        entry_sizer.AddGrowableRow(7, 3)
-        entry_sizer.AddMany([
+        entry = wx.FlexGridSizer(rows=8, cols=2, vgap=5, hgap=2)
+        entry.AddGrowableCol(1, 1)
+        entry.AddGrowableRow(5, 1)
+        entry.AddGrowableRow(7, 1)
+        entry.AddMany([
             static("Họ tên*"),
             widget(self.name),
             static("Giới*"),
@@ -122,20 +114,19 @@ class BasePatientDialog(wx.Dialog):
             static('Bệnh nền, dị ứng'),
             widget(self.past_history),
         ])
+        btn = wx.BoxSizer(wx.HORIZONTAL)
+        btn.AddMany([
+            (0, 0, 1),
+            (self.cancelbtn, 0, wx.ALL ^ wx.RIGHT, 10),
+            (self.okbtn, 0, wx.ALL, 10),
+        ])
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddMany([
-            (entry_sizer, 6, wx.ALL | wx.EXPAND, 10),
-            (wx.StaticText(self, label="* là bắt buộc"), 0, wx.EXPAND | wx.ALL, 5),
-            (self.CreateStdDialogButtonSizer(
-                wx.OK | wx.CANCEL), 1, wx.ALL | wx.EXPAND, 10)
+            (entry, 6, wx.ALL | wx.EXPAND, 10),
+            (wx.StaticText(self, label="* là bắt buộc"), 0, wx.ALL, 5),
+            (btn, 0, wx.EXPAND),
         ])
         self.SetSizerAndFit(sizer)
-
-    def _bindOkBtn(self):
-        for i in range(4, 0, -1):
-            btn = self.Sizer.Children[2].Sizer.Children[i].Window
-            if (btn is not None) and (btn.Id == wx.ID_OK):
-                btn.Bind(wx.EVT_BUTTON, self.onOkBtn)
 
 
 class NewPatientDialog(BasePatientDialog):
@@ -144,10 +135,8 @@ class NewPatientDialog(BasePatientDialog):
         super().__init__(parent, title="Bệnh nhân mới")
 
     def onOkBtn(self, e):
-        if self.name.Value == ''.strip():
-            wx.MessageBox("Chưa nhập tên bệnh nhân", "Lỗi")
-        elif self.birthdate_text.Value.strip() == '':
-            wx.MessageBox("Chưa nhập ngày sinh", "Lỗi")
+        if not self.is_valid():
+            self.show_error()
         else:
             try:
                 p = self.get_patient()
@@ -161,7 +150,7 @@ class NewPatientDialog(BasePatientDialog):
                     style=wx.OK_DEFAULT | wx.CANCEL
                 ).ShowModal() == wx.ID_OK:
                     self.Parent.con.insert(
-                        QueueListWithoutTime(patient_id=lastrowid))
+                        QueueList(patient_id=lastrowid))
                     wx.MessageBox(
                         "Thêm vào danh sách chờ thành công", "OK")
                     self.Parent.refresh()
@@ -169,8 +158,8 @@ class NewPatientDialog(BasePatientDialog):
             except sqlite3.IntegrityError as error:
                 wx.MessageBox(
                     f"Đã có tên trong danh sách chờ.\n{error}", "Lỗi")
-            except Exception as e:
-                wx.MessageBox(f"Lỗi không thêm bệnh nhân mới được\n{e}", "Lỗi")
+            except Exception as error:
+                wx.MessageBox(f"Lỗi không thêm bệnh nhân mới được\n{error}", "Lỗi")
 
 
 class EditPatientDialog(BasePatientDialog):
@@ -191,12 +180,15 @@ class EditPatientDialog(BasePatientDialog):
         self.past_history.ChangeValue(self.p.past_history or '')
 
     def onOkBtn(self, e):
-        patient = self.get_patient()
-        patient.add_id(self.p.id)
-        try:
-            self.Parent.con.update(patient)
-            wx.MessageBox("Cập nhật thành công", "OK")
-            self.Parent.refresh()
-            e.Skip()
-        except sqlite3.Error as error:
-            wx.MessageBox(f"Lỗi không cập nhật được\n{error}", "Lỗi")
+        if not self.is_valid():
+            self.show_error()
+        else:
+            patient = self.get_patient()
+            patient.add_id(self.p.id)
+            try:
+                self.Parent.con.update(patient)
+                wx.MessageBox("Cập nhật thành công", "OK")
+                self.Parent.refresh()
+                e.Skip()
+            except sqlite3.Error as error:
+                wx.MessageBox(f"Lỗi không cập nhật được\n{error}", "Lỗi")
