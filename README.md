@@ -1,4 +1,4 @@
-# Phần mềm phòng mạch tư
+﻿# Phần mềm phòng mạch tư
 - Tác giả: BS Vương Kiến Thanh  
 - Email: thanhstardust@outlook.com
 
@@ -81,7 +81,7 @@ Install dependencies
 sudo apt install -y build-essential gdb lcov pkg-config \
       libbz2-dev libffi-dev libgdbm-dev libgdbm-compat-dev liblzma-dev \
       libncurses5-dev libreadline6-dev libsqlite3-dev libssl-dev \
-      lzma lzma-dev tk-dev uuid-dev zlib1g-dev \
+      lzma lzma-dev tk-dev uuid-dev zlib1g-dev python3-venv\
       libgtk-3-0 libgtk-3-bin libgtk-3-common libgtk-3-dev \
       libgstreamer1.0-dev libgstreamer-plugins-base1.0-0 \
       libgstreamer-plugins-base1.0-dev freeglut3 freeglut3-dev
