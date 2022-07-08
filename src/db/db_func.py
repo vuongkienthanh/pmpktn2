@@ -91,8 +91,8 @@ class Connection():
     def __exit__(self, exc_type, exc_value, exc_traceback):
         return self.sqlcon.__exit__(exc_type, exc_value, exc_traceback)
 
-    def execute(self, sql, *args, **kwargs):
-        return self.sqlcon.execute(sql, *args, **kwargs)
+    def execute(self, sql: str, parameters=...):
+        return self.sqlcon.execute(sql, parameters)
 
     def insert(self, t: type[BASE], base: dict) -> tuple[int, int] | None:
         with self.sqlcon as con:
@@ -102,8 +102,7 @@ class Connection():
             """,
                               base
                               )
-            if cur.lastrowid is None:
-                raise Exception("lastrowid is None")
+            assert cur.lastrowid is not None
             return (cur.lastrowid, cur.rowcount)
 
     def select(self, t: type[T], id: int) -> T | None:

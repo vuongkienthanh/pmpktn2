@@ -18,7 +18,7 @@ class App(wx.App):
         config = self.get_config()
                 
 
-        from core.main_view import MainView
+        from core.mainview import MainView
         if sample:
             # con = dbf.Connection('test.db')
             con = dbf.Connection(':memory:')

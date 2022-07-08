@@ -184,9 +184,3 @@ class MainView(wx.Frame):
     def start(self):
         self.patient_book.GetPage(0).build(self.state.queuelist)
         self.patient_book.GetPage(1).build(self.state.todaylist)
-
-    def refresh(self):
-        self.state.refresh()
-        self.patient_book.GetPage(0).rebuild(self.state.queuelist)
-        self.patient_book.GetPage(1).rebuild(self.state.todaylist)
-        self.patient_book.ChangeSelection(0)

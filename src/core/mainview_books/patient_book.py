@@ -1,4 +1,5 @@
 from core.initialize import *
+from core import mainview
 from core.menu.patient_dialog import EditPatientDialog
 from db.db_class import Patient, Visit
 import sqlite3
@@ -7,11 +8,14 @@ import wx
 
 class PatientBook(wx.Notebook):
 
-    def __init__(self, parent):
+    def __init__(self, parent:'mainview.MainView'):
         super().__init__(parent)
-        self.AddPage(page=QueuingPatientList(self),
+        self.mv = parent
+        self.page0 = QueuingPatientList(self)
+        self.page1 = TodayPatientList(self)
+        self.AddPage(page=self.page0,
                      text='Danh sách chờ khám', select=True)
-        self.AddPage(page=TodayPatientList(self),
+        self.AddPage(page=self.page1,
                      text='Danh sách đã khám hôm nay')
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.onChanging)
 
@@ -51,7 +55,7 @@ class PatientListCtrl(wx.ListCtrl):
 
 class QueuingPatientList(PatientListCtrl):
 
-    def __init__(self, parent):
+    def __init__(self, parent:PatientBook):
         super().__init__(parent)
         self.AppendColumn('Giờ đăng ký'.ljust(20, ' '), width=-2)
 
@@ -75,8 +79,9 @@ class QueuingPatientList(PatientListCtrl):
 
 class TodayPatientList(PatientListCtrl):
 
-    def __init__(self, parent):
+    def __init__(self, parent:PatientBook):
         super().__init__(parent)
+        self.mv = parent.mv
         self.AppendColumn('Giờ khám'.ljust(20, ' '), width=-2)
 
     def append_ui(self, row: sqlite3.Row) -> None:
@@ -89,12 +94,12 @@ class TodayPatientList(PatientListCtrl):
         ])
 
     def onSelect(self, e: wx.ListEvent):
-        mv = self.Parent.Parent
-        pid = mv.state.todaylist[e.Index]['pid']
-        mv.state.patient = mv.con.select(Patient, pid)
-        vid = mv.state.todaylist[e.Index]['vid']
-        mv.state.visit = mv.con.select(Visit, vid)
+        pid = self.mv.state.todaylist[e.Index]['pid']
+        self.mv.state.patient = self.mv.con.select(Patient, pid)
+        vid = self.mv.state.todaylist[e.Index]['vid']
+        self.mv.state.visit = self.mv.con.select(Visit, vid)
+        
 
     def onDeselect(self, e: wx.ListEvent):
-        self.Parent.Parent.state.patient = None
-        self.Parent.Parent.state.visit = None
+        self.mv.state.patient = None
+        self.mv.state.visit = None

@@ -1,16 +1,16 @@
 from core.initialize import *
 from db.db_class import Patient, Patient, QueueList, QueueList
 import core.other_func as otf
-from core.widgets import DatePicker, GenderChoice, PhoneTextCtrl, DateTextCtrl, AgeCtrl
-from core import main_view
+from core.widgets import DatePicker, GenderChoice, PhoneTextCtrl, DateTextCtrl, AgeCtrl, disable_text_ctrl
+from core import mainview
 import sqlite3
 import wx
 import wx.adv as adv
-
+from typing import Any
 
 
 class BasePatientDialog(wx.Dialog):
-    def __init__(self, parent:'main_view.MainView', title):
+    def __init__(self, parent:'mainview.MainView', title):
         super().__init__(
             parent,
             title=title,
@@ -28,7 +28,7 @@ class BasePatientDialog(wx.Dialog):
             wx.DateTime.Today() - wx.DateSpan(years=100),
             wx.DateTime.Today()
         )
-        self.age = AgeCtrl(self)
+        self.age = disable_text_ctrl(AgeCtrl(self))
         self.birthdate_text.Bind(wx.EVT_TEXT, self.onBirthdateText)
         self.birthdate.Bind(adv.EVT_CALENDAR_SEL_CHANGED, self.onBirthdate)
 
@@ -60,18 +60,18 @@ class BasePatientDialog(wx.Dialog):
     def onBirthdate(self, e:adv.CalendarEvent):
         date = self.birthdate.GetDate()
         self.age.SetBirthdate(date)
-        self.birthdate_text.ChangeDate(date)
+        self.birthdate_text.SetDate(date)
         e.Skip()
 
-    def get_patient(self):
-        return Patient(
-            name=self.name.Value.strip().upper(),
-            gender=self.gender.GetGender(),
-            birthdate=self.birthdate.GetDate(),
-            address=otf.check_blank(self.address.Value),
-            phone=otf.check_blank(self.phone.Value),
-            past_history=otf.check_blank(self.past_history.Value)
-        )
+    def get_patient(self) -> dict[str, Any]:
+        return {
+            'name' : self.name.Value.strip().upper(),
+            'gender' : self.gender.GetGender(),
+            'birthdate' : self.birthdate.GetDate(),
+            'address' : otf.check_blank(self.address.Value),
+            'phone' : otf.check_blank(self.phone.Value),
+            'past_history' : otf.check_blank(self.past_history.Value)
+        }
     
     def is_valid(self) -> bool:
         return all([
@@ -131,7 +131,7 @@ class BasePatientDialog(wx.Dialog):
 
 class NewPatientDialog(BasePatientDialog):
 
-    def __init__(self, parent):
+    def __init__(self, parent:'mainview.MainView'):
         super().__init__(parent, title="Bệnh nhân mới")
 
     def onOkBtn(self, e):
@@ -140,7 +140,9 @@ class NewPatientDialog(BasePatientDialog):
         else:
             try:
                 p = self.get_patient()
-                lastrowid, _ = self.Parent.con.insert(p)
+                res = self.mv.con.insert(Patient, p)
+                assert res is not None
+                lastrowid, _ = res
                 wx.MessageBox("Đã thêm bệnh nhân mới thành công",
                               "Bệnh nhân mới")
                 if wx.MessageDialog(
@@ -149,11 +151,11 @@ class NewPatientDialog(BasePatientDialog):
                     caption="Danh sách chờ khám",
                     style=wx.OK_DEFAULT | wx.CANCEL
                 ).ShowModal() == wx.ID_OK:
-                    self.Parent.con.insert(
-                        QueueList(patient_id=lastrowid))
+                    self.mv.con.insert(
+                        QueueList, {'patient_id':lastrowid})
                     wx.MessageBox(
                         "Thêm vào danh sách chờ thành công", "OK")
-                    self.Parent.refresh()
+                    self.mv.state.refresh()
                 e.Skip()
             except sqlite3.IntegrityError as error:
                 wx.MessageBox(
@@ -164,31 +166,32 @@ class NewPatientDialog(BasePatientDialog):
 
 class EditPatientDialog(BasePatientDialog):
 
-    def __init__(self, parent, p):
+    def __init__(self, parent:'mainview.MainView', p:Patient):
         super().__init__(parent, title="Cập nhật thông tin bệnh nhân")
         self.p = p
         self.build()
 
     def build(self):
         self.name.ChangeValue(self.p.name)
-        self.gender.Selection = self.p.gender.value
+        self.gender.SetGender(self.p.gender)
         self.birthdate.SetDate(self.p.birthdate)
-        self.age.ChangeValue(otf.bd_to_age(self.p.birthdate))
-        self.birthdate_text.ChangeValue(self.p.birthdate.strftime("%d/%m/%Y"))
-        self.address.ChangeValue(self.p.address or '')
-        self.phone.ChangeValue(self.p.phone or '')
-        self.past_history.ChangeValue(self.p.past_history or '')
+        self.age.SetBirthdate(self.p.birthdate)
+        self.birthdate_text.SetDate(self.p.birthdate)
+        self.address.ChangeValue(otf.check_none(self.p.address ))
+        self.phone.ChangeValue(otf.check_none(self.p.phone))
+        self.past_history.ChangeValue(otf.check_none(self.p.past_history))
 
     def onOkBtn(self, e):
         if not self.is_valid():
             self.show_error()
         else:
             patient = self.get_patient()
-            patient.add_id(self.p.id)
+            patient['id'] =self.p.id
+
             try:
-                self.Parent.con.update(patient)
+                self.mv.con.update(Patient(**patient))
                 wx.MessageBox("Cập nhật thành công", "OK")
-                self.Parent.refresh()
+                self.mv.state.refresh()
                 e.Skip()
             except sqlite3.Error as error:
                 wx.MessageBox(f"Lỗi không cập nhật được\n{error}", "Lỗi")

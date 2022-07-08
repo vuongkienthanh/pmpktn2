@@ -4,11 +4,11 @@ import platform
 
 from db.db_class import LineDrug
 if platform.system() in ['Linux', 'Darwin']:
-    from core.mainview_widgets.order_book_pages.prescription.linux_drug_picker import DrugPicker
+    from core.mainview_books.order_book_pages.prescription.linux_drug_picker import DrugPicker
 else:
     ...
-from core.mainview_widgets.order_book_pages.prescription.drug_list import DrugList
-from core.mainview_widgets.order_book_pages.prescription.widgets import *
+from core.widgets import DrugList
+from core.mainview_books.order_book_pages.prescription.widgets import *
 
 import wx
 

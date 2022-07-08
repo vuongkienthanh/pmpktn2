@@ -5,6 +5,7 @@ import dataclasses
 from typing import ClassVar, TypeVar
 from decimal import Decimal
 import sqlite3
+from typing import Any
 
 
 class Gender(enum.Enum):
@@ -18,16 +19,15 @@ class Gender(enum.Enum):
 @dataclass
 class BASE():
     table_name: ClassVar[str]
-    have_default: ClassVar[list[str]]
+    not_in_fields: ClassVar[list[str]]
 
     @classmethod
-    def parse(cls, row:sqlite3.Row):
+    def parse(cls, row: sqlite3.Row):
         return cls(**row)  # type:ignore
-
 
     @classmethod
     def fields(cls,) -> tuple[str]:
-        return tuple((f.name for f in dataclasses.fields(cls) if f.name not in cls.have_default))
+        return tuple((f.name for f in dataclasses.fields(cls) if f.name not in cls.not_in_fields))
 
     @classmethod
     def fields_as_str(cls) -> str:
@@ -37,12 +37,16 @@ class BASE():
     def fields_as_qmarks(cls) -> str:
         num_of_qmark = len(cls.fields())
         return ','.join(['?'] * num_of_qmark)
+
     @classmethod
     def fields_as_names(cls) -> str:
         return ','.join([f":{f}" for f in cls.fields()])
 
     def into_sql_args(self) -> tuple:
         return tuple((getattr(self, attr) for attr in self.fields()))
+
+    def into_sql_kwargs(self) -> dict[str, Any]:
+        return {attr: getattr(self, attr) for attr in self.fields()}
 
     def add_id(self, id: int) -> None:
         self.id = id
@@ -51,8 +55,8 @@ class BASE():
 @dataclass
 class Patient(BASE):
     table_name = 'patients'
-    have_default = ['id']
-    id: int 
+    not_in_fields = ['id']
+    id: int
     name: str
     gender: Gender
     birthdate: dt.date
@@ -64,7 +68,7 @@ class Patient(BASE):
 @dataclass
 class QueueList(BASE):
     table_name = 'queuelist'
-    have_default = ['id', 'added_datetime']
+    not_in_fields = ['id', 'added_datetime']
     id: int
     added_datetime: dt.datetime
     patient_id: int
@@ -73,7 +77,7 @@ class QueueList(BASE):
 @dataclass
 class Visit(BASE):
     table_name = 'visits'
-    have_default = ['id', 'exam_datetime']
+    not_in_fields = ['id', 'exam_datetime']
     id: int
     exam_datetime: dt.datetime
     diagnosis: str
@@ -88,7 +92,7 @@ class Visit(BASE):
 @dataclass
 class LineDrug(BASE):
     table_name = 'linedrugs'
-    have_default = ['id']
+    not_in_fields = ['id']
     id: int
     drug_id: int
     dose: str
@@ -101,7 +105,7 @@ class LineDrug(BASE):
 @dataclass
 class Warehouse(BASE):
     table_name = 'warehouse'
-    have_default = ['id']
+    not_in_fields = ['id']
     id: int
     name: str
     element: str
@@ -119,7 +123,7 @@ class Warehouse(BASE):
 @dataclass
 class SamplePrescription(BASE):
     table_name = 'sampleprescription'
-    have_default = ['id']
+    not_in_fields = ['id']
     id: int
     name: str
 
@@ -127,7 +131,7 @@ class SamplePrescription(BASE):
 @dataclass
 class LineSamplePrescription(BASE):
     table_name = 'linesampleprescription'
-    have_default = ['id']
+    not_in_fields = ['id']
     id: int
     drug_id: int
     sample_id: int

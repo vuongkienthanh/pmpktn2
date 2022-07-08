@@ -1,4 +1,4 @@
-from core import main_view
+from core import mainview
 from db.db_class import *
 import core.other_func as otf
 import wx
@@ -6,7 +6,7 @@ import sqlite3
 
 
 class SampleDialog(wx.Dialog):
-    def __init__(self, parent: 'main_view.MainView'):
+    def __init__(self, parent: 'mainview.MainView'):
         super().__init__(parent=parent, title="Toa mẫu",
                          style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
         self.mv = parent
@@ -108,11 +108,14 @@ class AddSampleButton(wx.Button):
     def onClick(self, e) -> None:
         s = wx.GetTextFromUser("Tên toa mẫu mới", "Thêm toa mẫu")
         if s != '':
-            sp = SamplePrescription(name=s)
-            res = self.parent.mv.con.insert(sp)
+            sp = {'name':s}
+            res = self.parent.mv.con.insert(SamplePrescription, sp)
             if res is not None:
                 lastrowid, _ = res
-                sp.add_id(lastrowid)
+                sp = SamplePrescription(
+                    id=lastrowid,
+                    name=s
+                )
                 self.parent.mv.state.sampleprescriptionlist.append(sp)
                 self.parent.samplelist.append(sp)
             else:
@@ -191,12 +194,12 @@ class AddDrugButton(wx.Button):
         sp = self.parent.mv.state.sampleprescriptionlist[idx]
 
 
-        lsp = LineSamplePrescription(
-            drug_id=wh.id,
-            sample_id=sp.id,
-            times=int(self.parent.times.GetValue().strip()),
-            dose=self.parent.dose.GetValue().strip()
-        )
+        # lsp = LineSamplePrescription(
+        #     drug_id=wh.id,
+        #     sample_id=sp.id,
+        #     times=int(self.parent.times.GetValue().strip()),
+        #     dose=self.parent.dose.GetValue().strip()
+        # )
 
 
 class MinusDrugButton(wx.Button):

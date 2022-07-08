@@ -1,19 +1,24 @@
 import core.other_func as otf
+from core.initialize import k_number, k_special
+from core.mainview_books.order_book_pages.prescription import page
 from path_init import plus_bm, minus_bm
 import wx
 
 
 class Times(wx.TextCtrl):
-    def __init__(self, parent):
-        super().__init__(parent,)
+    def __init__(self, parent:'page.PrescriptionPage'):
+        super().__init__(parent)
         self.SetHint('lần')
-        self.Bind(wx.EVT_CHAR, otf.only_nums)
+        self.Bind(wx.EVT_CHAR, self.onChar)
         self.Bind(wx.EVT_TEXT, self.onText)
 
     def onText(self, e):
         if self.Parent.check_wh_do_ti_filled():
             self.Parent.quantity.set()
             self.Parent.note.set()
+    def onChar(self,e:wx.KeyEvent):
+        if e.KeyCode in k_number + k_special:
+            e.Skip()
 
 
 class Dose(wx.TextCtrl):

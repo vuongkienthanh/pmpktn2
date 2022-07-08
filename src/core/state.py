@@ -1,5 +1,5 @@
 from db.db_class import *
-from core import main_view
+from core import mainview
 import core.other_func as otf
 
 
@@ -9,7 +9,7 @@ import sqlite3
 class State():
     '''Manager data, appearance and button state'''
 
-    def __init__(self, mv: 'main_view.MainView') -> None:
+    def __init__(self, mv: 'mainview.MainView') -> None:
         self.mv = mv
         self.Init()
 
@@ -19,8 +19,8 @@ class State():
         self._warehouse: Warehouse | None = None
         self._visitlist: list[sqlite3.Row] = []
         self._linedruglist: list[sqlite3.Row] = []
-        self.queuelist: list[sqlite3.Row] = self.get_queuelist()
-        self.todaylist: list[sqlite3.Row] = self.get_todaylist()
+        self._queuelist: list[sqlite3.Row] = self.get_queuelist()
+        self._todaylist: list[sqlite3.Row] = self.get_todaylist()
         self.warehouselist: list[Warehouse] = self.mv.con.selectall(
             Warehouse)
         self.sampleprescriptionlist: list[SamplePrescription] = self.mv.con.selectall(
@@ -118,11 +118,12 @@ class State():
         self.mv.weight.SetValue(v.weight)
         self.mv.days.SetValue(v.days)
         self.mv.recheck.SetValue(v.recheck)
-        self.mv.follow.SetValue(v.follow)
+        self.mv.follow.SetFollow(v.follow)
         self.linedruglist = self.mv.con.select_linedrugs_by_visit_id(v.id)
         self.mv.savebtn.SetLabel("Cập nhật")
-        self.mv.price.set_price()
-        self.mv.newvisitbtn.Enable()
+        self.mv.price.CalcAndSet()
+        if self.mv.patient_book.GetSelection() == 0:
+            self.mv.newvisitbtn.Enable()
         self.mv.order_book.GetPage(0).reuse_druglist_btn.Enable()
         self.mv.GetMenuBar().menuNewVisit.Enable()
         if self.patient is not None:
@@ -197,7 +198,25 @@ class State():
         self._linedruglist = lld
         self.mv.order_book.GetPage(0).drug_list.rebuild(lld)
 
-    def get_wh_by_id(self, id: int):
+    @property
+    def queuelist(self) -> list[sqlite3.Row]:
+        return self._queuelist
+
+    @queuelist.setter
+    def queuelist(self , ql: list[sqlite3.Row]):
+        self._queuelist = ql
+        self.mv.patient_book.page0.rebuild(ql)
+
+    @property
+    def todaylist(self) -> list[sqlite3.Row]:
+        return self._todaylist
+
+    @todaylist.setter
+    def todaylist(self , tdl: list[sqlite3.Row]):
+        self._todaylist = tdl
+        self.mv.patient_book.page1.rebuild(tdl)
+
+    def get_wh_by_id(self, id: int) -> Warehouse | None:
         for wh in self.warehouselist:
             if id == wh.id:
                 return wh

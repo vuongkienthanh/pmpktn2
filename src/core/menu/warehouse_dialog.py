@@ -1,6 +1,6 @@
 from db.db_class import Warehouse
 import core.other_func as otf
-from core import main_view
+from core import mainview
 from core.widgets import DatePicker, NumTextCtrl
 import wx
 import wx.adv as adv
@@ -8,7 +8,7 @@ import datetime as dt
 
 
 class WarehouseSetupDialog(wx.Dialog):
-    def __init__(self, parent: 'main_view.MainView'):
+    def __init__(self, parent: 'mainview.MainView'):
         super().__init__(parent=parent, title="Kho thuốc",
                          style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
         self.locale = wx.Locale(wx.LANGUAGE_VIETNAMESE)
