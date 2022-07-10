@@ -425,13 +425,13 @@ class SaveBtn(wx.Button):
                         = ({Visit.fields_as_qmarks()})
                         WHERE id = {v.id}
                     """, v.into_sql_args())
-                    con.executemany("""
-                        UPDATE linedrugs
+                    con.executemany(f"""
+                        UPDATE {LineDrug.table_name}
                         SET (dose, times, quantity, note) = (?,?,?,?)
                         WHERE id=?
                     """, update_ld)
                     con.executemany(
-                        "DELETE FROM linedrugs WHERE id = ?",
+                        f"DELETE FROM {LineDrug.table_name} WHERE id = ?",
                         delete_ld)
                     con.executemany(f"""
                         INSERT INTO {LineDrug.table_name} ({LineDrug.fields_as_str()})
