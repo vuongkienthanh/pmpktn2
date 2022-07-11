@@ -1,22 +1,22 @@
-from tabnanny import check
 from core.initialize import *
-import platform
+# from core.mainview_books import order_boo.presck
+from core.mainview_books.order_book_pages.prescription.widgets import DrugList, Times, Dose, Quantity, Note, SaveDrugButton, DelDrugButton, ReuseDrugListButton
+# from core0widgets import *
 
-from db.db_class import LineDrug
+import platform
 if platform.system() in ['Linux', 'Darwin']:
     from core.mainview_books.order_book_pages.prescription.linux_drug_picker import DrugPicker
 else:
     ...
-from core.widgets import DrugList
-from core.mainview_books.order_book_pages.prescription.widgets import *
-
 import wx
+
 
 
 class PrescriptionPage(wx.Panel):
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.parent = parent
         self._createWidgets()
         self._setSizer()
 
@@ -79,7 +79,7 @@ class PrescriptionPage(wx.Panel):
 
     def check_wh_do_ti_filled(self):
         return all([
-            self.Parent.Parent.state.warehouse is not None,
+            self.parent.mv.state.warehouse is not None,
             self.dose.Value.strip() != '',
             self.times.Value.strip() != '',
         ])

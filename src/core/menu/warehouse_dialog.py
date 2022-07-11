@@ -130,7 +130,7 @@ class WarehouseSetupDialog(wx.Dialog):
         idx = self.lc.GetFirstSelected()
         wh = self._list[idx]
         try:
-            rowcount = self.mv.con.delete(wh)
+            rowcount = self.mv.con.delete(Warehouse, wh.id)
             wx.MessageBox(f"Xoá thuốc thành công\n{rowcount}", "Xóa")
             self.mv.state.warehouselist = self.mv.con.selectall(Warehouse)
             self.rebuild()

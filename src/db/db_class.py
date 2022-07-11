@@ -4,8 +4,8 @@ from dataclasses import dataclass
 import dataclasses
 from typing import ClassVar, TypeVar
 from decimal import Decimal
-import sqlite3
 from typing import Any
+from collections.abc import Mapping
 
 
 class Gender(enum.Enum):
@@ -18,28 +18,49 @@ class Gender(enum.Enum):
 
 @dataclass
 class BASE():
+    """
+    Base Abstract Class for derived sql table
+    - `table_name`: name of table in sqlite database
+    - `not_in_fields`: names of fields that are not returned by classmethod fields() 
+    """
     table_name: ClassVar[str]
     not_in_fields: ClassVar[list[str]]
+    id: int
 
     @classmethod
-    def parse(cls, row: sqlite3.Row):
-        return cls(**row)  # type:ignore
+    def parse(cls, row: Mapping[str, Any]):
+        """
+        Return the BASE object from a mapping with no conversion
+        """
+        return cls(**row)
 
     @classmethod
-    def fields(cls,) -> tuple[str]:
+    def fields(cls) -> tuple[str]:
+        """
+        Return fields used in sql insert & update string
+        """
         return tuple((f.name for f in dataclasses.fields(cls) if f.name not in cls.not_in_fields))
 
     @classmethod
-    def fields_as_str(cls) -> str:
+    def commna_joined_fields(cls) -> str:
+        """
+        Return comma-joined fields
+        """
         return ','.join(cls.fields())
 
     @classmethod
-    def fields_as_qmarks(cls) -> str:
+    def qmark_style_fields(cls) -> str:
+        """
+        Return qmark-style placeholders
+        """
         num_of_qmark = len(cls.fields())
         return ','.join(['?'] * num_of_qmark)
 
     @classmethod
-    def fields_as_names(cls) -> str:
+    def named_style_fields(cls) -> str:
+        """
+        Return named-style placeholders
+        """
         return ','.join([f":{f}" for f in cls.fields()])
 
     def into_sql_args(self) -> tuple:
@@ -47,9 +68,6 @@ class BASE():
 
     def into_sql_kwargs(self) -> dict[str, Any]:
         return {attr: getattr(self, attr) for attr in self.fields()}
-
-    def add_id(self, id: int) -> None:
-        self.id = id
 
 
 @dataclass

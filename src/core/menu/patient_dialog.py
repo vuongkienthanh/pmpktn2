@@ -1,8 +1,7 @@
-from core.initialize import *
 from db.db_class import Patient, Patient, QueueList, QueueList
 import core.other_func as otf
-from core.widgets import DatePicker, GenderChoice, PhoneTextCtrl, DateTextCtrl, AgeCtrl, disable_text_ctrl
 from core import mainview
+from core.widgets import DatePicker, GenderChoice, PhoneTextCtrl, DateTextCtrl, AgeCtrl
 import sqlite3
 import wx
 import wx.adv as adv
@@ -28,7 +27,7 @@ class BasePatientDialog(wx.Dialog):
             wx.DateTime.Today() - wx.DateSpan(years=100),
             wx.DateTime.Today()
         )
-        self.age = disable_text_ctrl(AgeCtrl(self))
+        self.age = otf.disable_text_ctrl(AgeCtrl(self))
         self.birthdate_text.Bind(wx.EVT_TEXT, self.onBirthdateText)
         self.birthdate.Bind(adv.EVT_CALENDAR_SEL_CHANGED, self.onBirthdate)
 

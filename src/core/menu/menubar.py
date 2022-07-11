@@ -12,7 +12,7 @@ import shutil
 import os.path
 import sys
 import os
-
+import sqlite3
 
 class MyMenuBar(wx.MenuBar):
 
@@ -133,7 +133,7 @@ class MyMenuBar(wx.MenuBar):
     def onDeletePatient(self, e):
         mv = self.GetFrame()
         try:
-            mv.con.delete(mv.state.patient)
+            mv.con.delete(Patient, mv.state.patient.id)
             wx.MessageBox("Xóa thành công", "OK")
             mv.refresh()
         except sqlite3.Error as error:
@@ -152,7 +152,7 @@ class MyMenuBar(wx.MenuBar):
     def onDeleteVisit(self, e):
         mv = self.GetFrame()
         try:
-            mv.con.delete(mv.state.visit)
+            mv.con.delete(Visit, mv.state.visit.id)
             wx.MessageBox("Xóa thành công", "OK")
             mv.state.refresh()
         except sqlite3.Error as error:

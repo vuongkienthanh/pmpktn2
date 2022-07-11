@@ -121,7 +121,7 @@ class State():
         self.mv.follow.SetFollow(v.follow)
         self.linedruglist = self.mv.con.select_linedrugs_by_visit_id(v.id)
         self.mv.savebtn.SetLabel("Cập nhật")
-        self.mv.price.CalcAndSet()
+        self.mv.price.SetPrice()
         if self.mv.patient_book.GetSelection() == 0:
             self.mv.newvisitbtn.Enable()
         self.mv.order_book.GetPage(0).reuse_druglist_btn.Enable()
@@ -196,7 +196,7 @@ class State():
     @linedruglist.setter
     def linedruglist(self, lld: list[sqlite3.Row]):
         self._linedruglist = lld
-        self.mv.order_book.GetPage(0).drug_list.rebuild(lld)
+        self.mv.order_book.page0.drug_list.rebuild(lld)
 
     @property
     def queuelist(self) -> list[sqlite3.Row]:

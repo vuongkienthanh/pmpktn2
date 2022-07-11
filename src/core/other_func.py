@@ -1,8 +1,8 @@
 import wx
 import datetime as dt
 from fractions import Fraction
-from typing import Any
-
+from typing import Any, TypeVar
+import decimal
 
 def bd_to_age(bd: dt.date):
     today = dt.date.today()
@@ -33,7 +33,7 @@ def only_nums(e:wx.KeyEvent, decimal=False, tab=True, slash=False):
         e.Skip()
 
 
-def get_note_str(usage, times, dose, usage_unit):
+def get_usage_note_str(usage, times, dose, usage_unit):
     return f"{usage} ngày {times} lần, lần {dose} {usage_unit}"
 
 
@@ -64,3 +64,24 @@ def calc_quantity(times, dose, days, sale_unit, list_of_unit):
     except Exception as e:
         print(e)
         return None
+
+
+TC = TypeVar('TC', bound=wx.TextCtrl)
+
+
+def disable_text_ctrl(w: TC) -> TC:
+    w.Disable()
+    w.SetBackgroundColour(wx.Colour(168, 168, 168))
+    w.SetForegroundColour(wx.Colour(0, 0, 0))
+    return w
+
+
+def check_mainview_filled(diagnosis: str, weight: decimal.Decimal) -> bool:
+    if diagnosis.strip() == '':
+        wx.MessageBox("Chưa nhập chẩn đoán", "Lỗi")
+        return False
+    elif weight == 0:
+        wx.MessageBox(f"Cân nặng = 0", "Lỗi")
+        return False
+    else:
+        return True

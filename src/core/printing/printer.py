@@ -101,7 +101,7 @@ class PrintOut(wx.Printout):
                         t = f"{dl['quantity']} {dl['sale_unit'] or dl['usage_unit']}"
                         dc.DrawText(t, 1300, 675 + 130 * i)
                     with wx.DCFontChanger(dc, info_italic):
-                        dc.DrawText(dl['note'] or otf.get_note_str(
+                        dc.DrawText(dl['note'] or otf.get_usage_note_str(
                             dl['usage'],
                             str(dl['times']),
                             dl['dose'],
@@ -155,7 +155,7 @@ class PrintOut(wx.Printout):
                     t = f"{dl['quantity']} {dl['sale_unit'] or dl['usage_unit']}"
                     dc.DrawText(t, 1300, 625 + 130 * i)
                 with wx.DCFontChanger(dc, info_italic):
-                    dc.DrawText(dl['note'] or otf.get_note_str(
+                    dc.DrawText(dl['note'] or otf.get_usage_note_str(
                         dl['usage'],
                         str(dl['times']),
                         dl['dose'],

@@ -91,14 +91,14 @@ class Connection():
     def __exit__(self, exc_type, exc_value, exc_traceback):
         return self.sqlcon.__exit__(exc_type, exc_value, exc_traceback)
 
-    def execute(self, sql: str, parameters=...):
-        return self.sqlcon.execute(sql, parameters)
+    def execute(self, sql,*parameters):
+        return self.sqlcon.execute(sql, *parameters)
 
     def insert(self, t: type[BASE], base: dict) -> tuple[int, int] | None:
         with self.sqlcon as con:
             cur = con.execute(f"""
-                INSERT INTO {t.table_name} ({t.fields_as_str()})
-                VALUES ({t.fields_as_names()})
+                INSERT INTO {t.table_name} ({t.commna_joined_fields()})
+                VALUES ({t.named_style_fields()})
             """,
                               base
                               )
@@ -120,14 +120,8 @@ class Connection():
         ).fetchall()
         return [t.parse(row) for row in rows]
 
-    def delete(self, base):
-        """Return rowcount"""
-        with self.sqlcon as con:
-            return con.execute(
-                f"DELETE FROM {base.table_name} WHERE id = {base.id}"
-            ).rowcount
 
-    def delete_by_id(self, t: type[BASE], id: int) -> int | None:
+    def delete(self, t: type[BASE], id: int) -> int | None:
         with self.sqlcon as con:
             return con.execute(
                 f"DELETE FROM {t.table_name} WHERE id = {id}"
@@ -137,8 +131,8 @@ class Connection():
         t = type(base)
         with self.sqlcon as con:
             return con.execute(f"""
-                UPDATE {t.table_name} SET ({t.fields_as_str()})
-                = ({t.fields_as_qmarks()})
+                UPDATE {t.table_name} SET ({t.commna_joined_fields()})
+                = ({t.qmark_style_fields()})
                 WHERE id = {base.id}
             """,
                                base.into_sql_args()

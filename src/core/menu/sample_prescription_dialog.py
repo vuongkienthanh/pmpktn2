@@ -81,12 +81,12 @@ class SampleList(wx.ListCtrl):
     def append(self, sp: SamplePrescription) -> None:
         self.Append((sp.name,))
 
-    def onSelect(self, e:wx.ListEvent):
+    def onSelect(self, e: wx.ListEvent):
         self.parent.minussamplebtn.Enable()
         self.parent.picker.Enable()
         self.parent.dose.Enable()
         self.parent.times.Enable()
-        idx :int = e.GetIndex()
+        idx: int = e.GetIndex()
         sp = self.parent.mv.state.sampleprescriptionlist[idx]
         self.parent.itemlist.build(sp.id)
 
@@ -108,7 +108,7 @@ class AddSampleButton(wx.Button):
     def onClick(self, e) -> None:
         s = wx.GetTextFromUser("Tên toa mẫu mới", "Thêm toa mẫu")
         if s != '':
-            sp = {'name':s}
+            sp = {'name': s}
             res = self.parent.mv.con.insert(SamplePrescription, sp)
             if res is not None:
                 lastrowid, _ = res
@@ -133,7 +133,7 @@ class MinusSampleButton(wx.Button):
         idx = self.parent.samplelist.GetFirstSelected()
         if idx >= 0:
             sp = self.parent.mv.state.sampleprescriptionlist[idx]
-            rowcount = self.parent.mv.con.delete(sp)
+            rowcount = self.parent.mv.con.delete(SamplePrescription, sp.id)
             if rowcount is not None:
                 self.parent.mv.state.sampleprescriptionlist.pop(idx)
                 self.parent.samplelist.DeleteItem(idx)
@@ -188,18 +188,19 @@ class AddDrugButton(wx.Button):
             self.Disable()
 
     def onClick(self, e):
-        idx :int  = self.parent.picker.GetCurrentSelection()
+        idx: int = self.parent.picker.GetCurrentSelection()
         wh = self.parent.mv.state.warehouselist[idx]
-        idx :int = self.parent.samplelist.GetFirstSelected()
+        idx: int = self.parent.samplelist.GetFirstSelected()
         sp = self.parent.mv.state.sampleprescriptionlist[idx]
 
+        lsp = {
+            'drug_id': wh.id,
+            'sample_id': sp.id,
+            'dose': self.parent.dose.GetValue().strip(),
+            'times': int(self.parent.times.GetValue().strip()),
+        }
 
-        # lsp = LineSamplePrescription(
-        #     drug_id=wh.id,
-        #     sample_id=sp.id,
-        #     times=int(self.parent.times.GetValue().strip()),
-        #     dose=self.parent.dose.GetValue().strip()
-        # )
+        self.parent.mv.con.insert(LineSamplePrescription, lsp)
 
 
 class MinusDrugButton(wx.Button):
@@ -213,7 +214,7 @@ class MinusDrugButton(wx.Button):
         idx = self.parent.itemlist.GetFirstSelected()
         self.parent.itemlist.DeleteItem(idx)
         llsp_id = self.parent.itemlist._list_id[idx]
-        self.parent.mv.con.delete_by_id(LineSamplePrescription, llsp_id)
+        self.parent.mv.con.delete(LineSamplePrescription, llsp_id)
         self.Disable()
 
 

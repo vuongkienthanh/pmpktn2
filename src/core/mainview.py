@@ -72,12 +72,12 @@ class MainView(wx.Frame):
         return sizer
 
     def _create_right_widgets(self):
-        self.name = disable_text_ctrl(wx.TextCtrl(self))
-        self.gender = disable_text_ctrl(wx.TextCtrl(self))
-        self.birthdate = disable_text_ctrl(DateTextCtrl(self))
-        self.age = disable_text_ctrl(AgeCtrl(self))
-        self.phone = disable_text_ctrl(PhoneTextCtrl(self))
-        self.address = disable_text_ctrl(wx.TextCtrl(self))
+        self.name = otf.disable_text_ctrl(wx.TextCtrl(self))
+        self.gender = otf.disable_text_ctrl(wx.TextCtrl(self))
+        self.birthdate = otf.disable_text_ctrl(DateTextCtrl(self))
+        self.age = otf.disable_text_ctrl(AgeCtrl(self))
+        self.phone = otf.disable_text_ctrl(PhoneTextCtrl(self))
+        self.address = otf.disable_text_ctrl(wx.TextCtrl(self))
         self.past_history = wx.TextCtrl(self, style=wx.TE_MULTILINE)
         self.diagnosis = wx.TextCtrl(self)
         self.vnote = wx.TextCtrl(self, style=wx.TE_MULTILINE)
@@ -88,7 +88,7 @@ class MainView(wx.Frame):
         self.order_book = OrderBook(self)
         self.recheck = RecheckCtrl(self)
         self.norecheck = NoRecheck(self)
-        self.price = disable_text_ctrl(PriceCtrl(self))
+        self.price = otf.disable_text_ctrl(PriceCtrl(self))
         self.follow = Follow(self)
         self.newvisitbtn = NewVisitBtn(self)
         self.savebtn = SaveBtn(self)
