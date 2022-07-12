@@ -20,6 +20,7 @@ class PrintOut(wx.Printout):
 
     def __init__(self, mv, num_of_ld=8, preview=False):
         super().__init__(title="Toa thuốc")
+        
         self.mv = mv
         self.num_of_ld = num_of_ld
         self.preview = preview

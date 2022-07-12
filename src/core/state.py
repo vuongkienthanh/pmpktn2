@@ -138,7 +138,7 @@ class State():
         self.mv.weight.SetValue(0)
         self.mv.days.SetValue(self.mv.config['so_ngay_toa_ve_mac_dinh'])
         self.mv.recheck.SetValue(self.mv.config['so_ngay_toa_ve_mac_dinh'])
-        self.mv.follow.ChangeValue("")
+        self.mv.follow.SetSelection(0)
         self.linedruglist = []
         self.mv.price.ChangeValue('')
         self.mv.newvisitbtn.Disable()

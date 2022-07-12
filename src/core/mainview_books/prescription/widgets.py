@@ -1,6 +1,6 @@
 from db.db_class import *
 import core.other_func as otf
-from core.mainview_books.order_book_pages.prescription import page
+from core.mainview_books import order_book
 from core.initialize import k_number, k_special, k_tab
 from path_init import  plus_bm, minus_bm
 
@@ -13,7 +13,7 @@ import sqlite3
 # Generic
 class DrugList(wx.ListCtrl):
 
-    def __init__(self, parent: 'page.PrescriptionPage'):
+    def __init__(self, parent: 'order_book.PrescriptionPage'):
         super().__init__(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         self.SetBackgroundColour(wx.Colour(220, 220, 220))
         self.parent = parent
@@ -29,7 +29,7 @@ class DrugList(wx.ListCtrl):
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
 
     def append(self, item: Mapping[str,Any]):
-        def append_list(item):
+        def append_list(item:Mapping[str,Any]):
             self._list.append({
                 'drug_id': item['drug_id'],
                 'name': item['name'],
@@ -42,7 +42,7 @@ class DrugList(wx.ListCtrl):
                 'note': item['note']
             })
 
-        def append_ui(item):
+        def append_ui(item:Mapping[str,Any]):
             sale_unit = item['sale_unit'] or item['usage_unit']
             note = item['note'] or otf.get_usage_note_str(
                 usage=item['usage'],
@@ -147,7 +147,7 @@ class DrugList(wx.ListCtrl):
 
 
 class Times(wx.TextCtrl):
-    def __init__(self, parent: 'page.PrescriptionPage'):
+    def __init__(self, parent: 'order_book.PrescriptionPage'):
         super().__init__(parent)
         self.SetHint('lần')
         self.Bind(wx.EVT_CHAR, self.onChar)
@@ -186,12 +186,9 @@ class Quantity(wx.TextCtrl):
         self.SetHint('Enter')
         self.Bind(wx.EVT_CHAR, self.onChar)
 
-    def onChar(self, e):
-        x = e.KeyCode
-        if x in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER) and self.Value.strip() != '':
-            self.Parent.save_drug_btn.onClick(None)
-        else:
-            otf.only_nums(e)
+    def onChar(self, e:wx.KeyEvent):
+        if e.KeyCode in k_number+k_tab+k_special:
+            e.Skip()
 
     def set(self):
         mv = self.Parent.Parent.Parent
@@ -210,7 +207,13 @@ class Quantity(wx.TextCtrl):
 class Note(wx.TextCtrl):
     def __init__(self, parent):
         super().__init__(parent)
+        self.Bind(wx.EVT_CHAR, self.onChar)
 
+    def onChar(self,e:wx.KeyEvent ):
+        if e.KeyCode in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+            self.Parent.save_drug_btn.onClick(None)
+        else:
+            e.Skip()
     def set(self):
         self.ChangeValue(otf.get_usage_note_str(
             usage=self.Parent.Parent.Parent.state.warehouse.usage,

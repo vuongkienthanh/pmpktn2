@@ -3,7 +3,6 @@ import core.other_func as otf
 from core import mainview
 from core.widgets import DatePicker, NumTextCtrl
 import wx
-import wx.adv as adv
 import datetime as dt
 
 
@@ -13,10 +12,19 @@ class WarehouseSetupDialog(wx.Dialog):
                          style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
         self.locale = wx.Locale(wx.LANGUAGE_VIETNAMESE)
         self.mv = parent
-        self._list = parent.state.warehouselist
+        self._list: list[Warehouse] = []
+
         self.search = wx.TextCtrl(self)
-        self.search.SetHint("Tên thuốc hoặc thành phần thuốc")
-        self.lc = self._create_listctrl()
+        self.search.SetHint(
+            "Tên thuốc hoặc thành phần thuốc")
+        self.lc = wx.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        for f in [
+            "Mã", "Tên".ljust(40, ' '), "Thành phần".ljust(40, ' '),
+            "Số lượng", "Đơn vị sử dụng", "Phương thức sử dụng",
+            "Giá mua", "Giá bán", "Đơn vị bán", "Ngày hết hạn",
+            "Xuất xứ", "Ghi chú".ljust(60, ' ')
+        ]:
+            self.lc.AppendColumn(f, width=-2)
         self.newbtn = wx.Button(self, label="Thêm mới")
         self.editbtn = wx.Button(self, label="Cập nhật")
         self.delbtn = wx.Button(self, label="Xóa")
@@ -24,6 +32,12 @@ class WarehouseSetupDialog(wx.Dialog):
 
         self.editbtn.Disable()
         self.delbtn.Disable()
+
+        search_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        search_sizer.AddMany([
+            (wx.StaticText(self, label="Tìm kiếm"), 0, wx.ALL | wx.ALIGN_CENTER, 5),
+            (self.search, 1, wx.ALL, 5),
+        ])
 
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_sizer.AddMany([
@@ -36,60 +50,51 @@ class WarehouseSetupDialog(wx.Dialog):
         ])
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddMany([
-            (self.search, 0, wx.EXPAND | wx.ALL, 5),
+            (search_sizer, 0, wx.EXPAND),
             (self.lc, 1, wx.EXPAND | wx.ALL, 5),
             (btn_sizer, 0, wx.EXPAND | wx.ALL, 5)
-
         ])
         self.SetSizerAndFit(sizer)
-        self.search.Bind(wx.EVT_CHAR, self.onSearch)
+
+        self.search.Bind(wx.EVT_TEXT, self.onText)
+        self.lc.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
+        self.lc.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
+        self.lc.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onEdit)
         self.newbtn.Bind(wx.EVT_BUTTON, self.onNew)
         self.editbtn.Bind(wx.EVT_BUTTON, self.onEdit)
-        self.delbtn.Bind(wx.EVT_BUTTON, self.onDel)
+        self.delbtn.Bind(wx.EVT_BUTTON, self.onDelete)
         self.Maximize()
-        self.build()
+        self.rebuild()
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
-    def onClose(self, e):
-        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
-        e.Skip()
-
-    def _create_listctrl(self):
-        w = wx.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
-        for f in [
-            "Mã", "Tên".ljust(40, ' '), "Thành phần".ljust(40, ' '),
-            "Số lượng", "Đơn vị sử dụng", "Phương thức sử dụng",
-            "Giá mua", "Giá bán", "Đơn vị bán", "Ngày hết hạn",
-            "Xuất xứ", "Ghi chú".ljust(60, ' ')
-        ]:
-            w.AppendColumn(f, width=-2)
-        w.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
-        w.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
-        w.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onEdit)
-        return w
-
-    def onSearch(self, e):
-        if e.KeyCode == wx.WXK_RETURN:
-            self.rebuild(self.search.Value.casefold())
-        else:
-            e.Skip()
-
-    def rebuild(self, s=''):
+    def clear(self):
+        self._list = []
         self.lc.DeleteAllItems()
-        self.fetch(s)
-        self.build()
 
-    def fetch(self, s=''):
-        lwh = self.mv.state.warehouselist
-        self._list = list(filter(lambda wh: (s in wh.name.casefold())
-                                 or (s in wh.element.casefold()), lwh))
+    def get_search_value(self) ->str:
+        s: str = self.search.GetValue()
+        return s.strip().casefold()
 
-    def build(self):
-        for idx, wh in enumerate(self._list):
+    def check_search_str_to_wh(self, wh:Warehouse, s:str|None=None) -> bool:
+        if s is None:
+            _s = self.get_search_value()
+        else:
+            _s = s
+        if (_s in wh.name.casefold()) or (_s in wh.element.casefold()):
+            return True
+        else:
+            return False
+
+    def rebuild(self, s: str = ''):
+        self.clear()
+        for wh in filter(
+                lambda wh: self.check_search_str_to_wh(wh, s),
+                self.mv.state.warehouselist
+        ):
             self.append(wh)
-            self.check_min_quantity(wh, idx)
 
     def append(self, wh: Warehouse):
+        self._list.append(wh)
         self.lc.Append([
             str(wh.id),
             wh.name,
@@ -105,65 +110,92 @@ class WarehouseSetupDialog(wx.Dialog):
             otf.check_none(wh.made_by),
             otf.check_none(wh.note)
         ])
+        self._checked_change_color(wh, len(self._list) - 1)
 
-    def check_min_quantity(self, wh: Warehouse, index: int):
+    def delete(self, idx: int):
+        self.lc.DeleteItem(idx)
+        self._list.pop(idx)
+
+
+    def _checked_change_color(self, wh: Warehouse, idx: int):
         if wh.quantity <= self.mv.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"]:
-            self.lc.SetItemTextColour(index, wx.Colour(252, 3, 57))
+            self.lc.SetItemTextColour(idx, wx.Colour(252, 3, 57))
 
-    def onSelect(self, e):
+    def onClose(self, e: wx.CloseEvent):
+        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
+        e.Skip()
+
+    def onText(self, e: wx.CommandEvent):
+        self.rebuild(self.get_search_value())
+        e.Skip()
+
+    def onSelect(self, e: wx.ListEvent):
         self.editbtn.Enable()
         self.delbtn.Enable()
 
-    def onDeselect(self, e):
+    def onDeselect(self, e: wx.ListEvent):
         self.editbtn.Disable()
         self.delbtn.Disable()
 
-    def onNew(self, e):
+    def onNew(self, e: wx.CommandEvent):
         NewWarehouseDialog(self).ShowModal()
 
-    def onEdit(self, e):
+    def onEdit(self, e: wx.CommandEvent | wx.ListEvent):
         idx = self.lc.GetFirstSelected()
         wh = self._list[idx]
         EditWarehouseDialog(self, wh).ShowModal()
 
-    def onDel(self, e):
-        idx = self.lc.GetFirstSelected()
+    def onDelete(self, e: wx.CommandEvent):
+        idx: int = self.lc.GetFirstSelected()
         wh = self._list[idx]
         try:
             rowcount = self.mv.con.delete(Warehouse, wh.id)
             wx.MessageBox(f"Xoá thuốc thành công\n{rowcount}", "Xóa")
             self.mv.state.warehouselist = self.mv.con.selectall(Warehouse)
-            self.rebuild()
+            self.delete(idx)
         except Exception as error:
             wx.MessageBox(f"Lỗi không xóa được\n{error}", "Lỗi")
 
 
 class WarehouseDialog(wx.Dialog):
-    def __init__(self, parent:WarehouseSetupDialog, title:str):
+    def __init__(self, parent: WarehouseSetupDialog, title: str):
         super().__init__(parent, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER, title=title)
         self.parent = parent
-        self.name = wx.TextCtrl(self)
-        self.element = wx.TextCtrl(self)
-        self.quantity = NumTextCtrl(self)
-        self.usage_unit = wx.TextCtrl(self)
-        self.usage = wx.TextCtrl(self)
-        self.purchase_price = NumTextCtrl(self)
-        self.sale_price = NumTextCtrl(self)
-        self.sale_unit = wx.TextCtrl(self)
-        self.expire_date = DatePicker(self)
-        self.made_by = wx.TextCtrl(self)
-        self.note = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        self.title = title
+
+        self.name = wx.TextCtrl(self, name="Tên thuốc")
+        self.element = wx.TextCtrl(self, name="Thành phần")
+        self.quantity = NumTextCtrl(self, name="Số lượng")
+        self.usage_unit = wx.TextCtrl(self, name="Đơn vị sử dụng")
+        self.usage = wx.TextCtrl(self, name="Cách sử dụng")
+        self.purchase_price = NumTextCtrl(self, name="Giá mua")
+        self.sale_price = NumTextCtrl(self, name="Giá bán")
+        self.sale_unit = wx.TextCtrl(self, name="Đơn vị bán")
+        self.expire_date = DatePicker(self, name="Hạn sử dụng")
+        self.made_by = wx.TextCtrl(self, name="Xuất xứ")
+        self.note = wx.TextCtrl(self, style=wx.TE_MULTILINE, name="Ghi chú")
         self.cancelbtn = wx.Button(self, id=wx.ID_CANCEL)
         self.okbtn = wx.Button(self, id=wx.ID_OK)
+
+        self.mandatory: tuple = (
+            self.name,
+            self.element,
+            self.quantity,
+            self.usage_unit,
+            self.usage,
+            self.purchase_price,
+            self.sale_price
+        )
+
         self.okbtn.Bind(wx.EVT_BUTTON, self.onOkBtn)
         self._setSizer()
 
     def _setSizer(self):
-        def static(s):
-            return (wx.StaticText(self, label=s), 1, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 3)
-
-        def widget(w, p=10):
-            return (w, p, wx.EXPAND | wx.ALL, 3)
+        def widget(w):
+            s: str = w.Name
+            if w in self.mandatory:
+                s += '*'
+            return (wx.StaticText(self, label=s), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 3), (w, 1, wx.EXPAND | wx.ALL, 3)
 
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_sizer.AddMany([
@@ -175,28 +207,17 @@ class WarehouseDialog(wx.Dialog):
         entry_sizer.AddGrowableCol(1, 3)
         entry_sizer.AddGrowableRow(10, 2)
         entry_sizer.AddMany([
-            static("Tên*"),
-            widget(self.name),
-            static("Thành phần*"),
-            widget(self.element),
-            static("Số lượng*"),
-            widget(self.quantity),
-            static("Đơn vị sử dụng*"),
-            widget(self.usage_unit),
-            static("Cách sử dụng*"),
-            widget(self.usage),
-            static("Giá mua*"),
-            widget(self.purchase_price),
-            static("Giá bán*"),
-            widget(self.sale_price),
-            static("Đơn vị bán"),
-            widget(self.sale_unit),
-            static("Hạn sử dụng"),
-            widget(self.expire_date),
-            static("Xuất xứ"),
-            widget(self.made_by),
-            static("Ghi chú"),
-            widget(self.note),
+            *widget(self.name),
+            *widget(self.element),
+            *widget(self.quantity),
+            *widget(self.usage_unit),
+            *widget(self.usage),
+            *widget(self.purchase_price),
+            *widget(self.sale_price),
+            *widget(self.sale_unit),
+            *widget(self.expire_date),
+            *widget(self.made_by),
+            *widget(self.note),
         ])
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddMany([
@@ -207,34 +228,36 @@ class WarehouseDialog(wx.Dialog):
         ])
         self.SetSizerAndFit(sizer)
 
-    def onOkBtn(self, e): ...
+    def onOkBtn(self, e: wx.CommandEvent): ...
+
+    def is_valid(self) -> bool:
+        for widget in self.mandatory:
+            val: str = widget.GetValue()
+            name: str = widget.GetName()
+            if val.strip() == '':
+                wx.MessageBox(f"Chưa nhập đủ thông tin\n{name}", self.title)
+                return False
+        else:
+            return True
+
+    def checked_get_sale_unit_value(self) -> str | None:
+        sale_unit: str = self.sale_unit.GetValue()
+        sale_unit = sale_unit.strip()
+        usage_unit: str = self.usage_unit.GetValue()
+        usage_unit = usage_unit.strip()
+
+        if (sale_unit == '') or (sale_unit == usage_unit):
+            return None
+        else:
+            return sale_unit
 
 
 class NewWarehouseDialog(WarehouseDialog):
-    def __init__(self, parent:WarehouseSetupDialog):
+    def __init__(self, parent: WarehouseSetupDialog):
         super().__init__(parent, title="Thêm mới")
 
     def onOkBtn(self, e):
-        for widget in [
-            self.name,
-            self.element,
-            self.quantity,
-            self.usage_unit,
-            self.usage,
-            self.purchase_price,
-            self.sale_price
-        ]:
-            if widget.Value.strip() == '':
-                wx.MessageBox("Chưa nhập đủ thông tin", "Thêm mới")
-                return
-        else:
-            sale_unit = self.sale_unit.Value.strip()
-            if (sale_unit == '') or (sale_unit == self.usage_unit.Value.strip()):
-                sale_unit = None
-            expire_date = self.expire_date.GetDate()
-            if expire_date == dt.date.today():
-                expire_date = None
-
+        if self.is_valid():
             wh = {
                 'name': self.name.Value.strip(),
                 'element': self.element.Value.strip(),
@@ -243,33 +266,32 @@ class NewWarehouseDialog(WarehouseDialog):
                 'usage': self.usage.Value.strip(),
                 'purchase_price': int(self.purchase_price.Value.strip()),
                 'sale_price': int(self.sale_price.Value.strip()),
-                'sale_unit': sale_unit,
-                'expire_date': expire_date,
+                'sale_unit': self.checked_get_sale_unit_value(),
+                'expire_date': self.expire_date.checked_GetDate(),
                 'made_by': otf.check_blank(self.made_by.Value),
                 'note': otf.check_blank(self.note.Value)
             }
             try:
                 res = self.parent.mv.con.insert(Warehouse, wh)
-                if res is not None:
-                    wx.MessageBox("Thêm mới thành công", "Thêm mới")
-                    lastrowid ,_ = res
-                    new_wh = Warehouse(id=lastrowid,**wh)
-                    self.parent.mv.state.warehouselist.append(new_wh)
-                    self.parent.rebuild()
-                    e.Skip()
-                else:
-                    raise ValueError('lastrowid is None')
+                assert res is not None
+                wx.MessageBox("Thêm mới thành công", "Thêm mới")
+                lastrowid, _ = res
+                new_wh = Warehouse(id=lastrowid, **wh)
+                self.parent.mv.state.warehouselist.append(new_wh)
+                if self.parent.check_search_str_to_wh(new_wh):
+                    self.parent.append(new_wh)
+                e.Skip()
             except Exception as error:
                 wx.MessageBox(f"Thêm mới thất bại\n{error}", "Thêm mới")
 
 
 class EditWarehouseDialog(WarehouseDialog):
-    def __init__(self, parent:WarehouseSetupDialog, wh:Warehouse):
+    def __init__(self, parent: WarehouseSetupDialog, wh: Warehouse):
         super().__init__(parent, title="Cập nhật")
         self.wh = wh
         self.build(wh)
 
-    def build(self, wh:Warehouse):
+    def build(self, wh: Warehouse):
         self.name.ChangeValue(wh.name)
         self.element.ChangeValue(wh.element)
         self.quantity.ChangeValue(str(wh.quantity))
@@ -287,42 +309,22 @@ class EditWarehouseDialog(WarehouseDialog):
         self.note.ChangeValue(otf.check_none(wh.note))
 
     def onOkBtn(self, e):
-        for widget in [
-            self.name,
-            self.element,
-            self.quantity,
-            self.usage_unit,
-            self.usage,
-            self.purchase_price,
-            self.sale_price
-        ]:
-            if widget.Value.strip() == '':
-                wx.MessageBox("Chưa nhập đủ thông tin", "Thêm mới")
-                return
-        else:
-            sale_unit = self.sale_unit.Value.strip()
-            if (sale_unit == '') or (sale_unit == self.usage_unit.Value.strip()):
-                sale_unit = None
-            expire_date = self.expire_date.GetDate()
-            if expire_date == dt.date.today():
-                expire_date = None
-            
+        if self.is_valid():
             self.wh.name = self.name.Value.strip()
             self.wh.element = self.element.Value.strip()
-            self.wh.quantity = int(self.quantity.Value.strip())
+            self.wh.quantity = int(self.quantity.Value)
             self.wh.usage_unit = self.usage_unit.Value.strip()
             self.wh.usage = self.usage.Value.strip()
-            self.wh.purchase_price = int(self.purchase_price.Value.strip())
-            self.wh.sale_price = int(self.sale_price.Value.strip())
-            self.wh.sale_unit = sale_unit
-            self.wh.expire_date = expire_date
-            self.wh.made_by = otf.check_blank(self.made_by.Value.strip())
-            self.wh.note = otf.check_blank(self.note.Value.strip())
+            self.wh.purchase_price = int(self.purchase_price.Value)
+            self.wh.sale_price = int(self.sale_price.Value)
+            self.wh.sale_unit = self.checked_get_sale_unit_value()
+            self.wh.expire_date = self.expire_date.checked_GetDate()
+            self.wh.made_by = otf.check_blank(self.made_by.Value)
+            self.wh.note = otf.check_blank(self.note.Value)
             try:
                 self.parent.mv.con.update(self.wh)
                 wx.MessageBox("Cập nhật thành công", "Cập nhật")
-                self.parent.mv.state.warehouselist = self.parent.mv.con.selectall(Warehouse)
-                self.parent.rebuild()  
+                self.parent.rebuild(self.parent.get_search_value())
                 e.Skip()
             except Exception as error:
                 wx.MessageBox(f"Cập nhật thất bại\n{error}", "Cập nhật")

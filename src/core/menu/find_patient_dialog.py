@@ -244,7 +244,7 @@ class FindPatientDialog(wx.Dialog):
         pid = self.listctrl.pid
         if pid:
             try:
-                self.Parent.con.delete_id(Patient, pid)
+                self.Parent.con.delete(Patient, pid)
                 wx.MessageBox("Xóa thành công", "OK")
                 self.Parent.refresh()
                 self.clear()

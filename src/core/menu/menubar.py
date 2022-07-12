@@ -1,6 +1,8 @@
 import subprocess
 from path_init import SRC_DIR, CONFIG_PATH
 from db.db_class import *
+from core import mainview
+from core.mainview_books import patient_book
 from core.menu.find_patient_dialog import FindPatientDialog
 from core.menu.patient_dialog import EditPatientDialog, NewPatientDialog
 from core.menu.setup_dialog import SetupDialog
@@ -110,7 +112,8 @@ class MyMenuBar(wx.MenuBar):
         self.Bind(wx.EVT_MENU, self.onResetSetting, menuResetSetting)
 
     def onRefresh(self, e):
-        self.GetFrame().refresh()
+        mv : 'mainview.MainView' = self.GetFrame()
+        mv.state.refresh()
 
     def onAbout(self, e):
         wx.MessageBox(
@@ -118,39 +121,47 @@ class MyMenuBar(wx.MenuBar):
             style=wx.OK | wx.CENTRE | wx.ICON_NONE)
 
     def onNewPatient(self, e):
-        NewPatientDialog(self.GetFrame()).ShowModal()
+        mv : 'mainview.MainView' = self.GetFrame()
+        NewPatientDialog(mv).ShowModal()
 
     def onFindPatient(self, e):
-        FindPatientDialog(self.GetFrame()).ShowModal()
+        mv : 'mainview.MainView' = self.GetFrame()
+        FindPatientDialog(mv).ShowModal()
 
     def onEditPatient(self, e):
-        mv = self.GetFrame()
+        mv : 'mainview.MainView' = self.GetFrame()
+        page : 'patient_book.QueuingPatientList' | 'patient_book.TodayPatientList'
         page = mv.patient_book.GetPage(mv.patient_book.Selection)
         idx = page.GetFirstSelected()
+        assert mv.state.patient is not None
         if EditPatientDialog(mv, mv.state.patient).ShowModal() == wx.ID_OK:
             page.EnsureVisible(idx)
 
     def onDeletePatient(self, e):
-        mv = self.GetFrame()
+        mv : 'mainview.MainView' = self.GetFrame()
         try:
             mv.con.delete(Patient, mv.state.patient.id)
             wx.MessageBox("Xóa thành công", "OK")
-            mv.refresh()
+            mv.state.queuelist = mv.state.get_queuelist()
+            mv.state.todaylist = mv.state.get_todaylist()
         except sqlite3.Error as error:
             wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
 
     def onNewVisit(self, e):
-        idx = self.GetFrame().visit_list.GetFirstSelected()
-        self.GetFrame().visit_list.Select(idx, 0)
+        mv : 'mainview.MainView' = self.GetFrame()
+        idx = mv.visit_list.GetFirstSelected()
+        mv.visit_list.Select(idx, 0)
 
     def onInsertVisit(self, e):
-        self.GetFrame().savebtn.insert_visit()
+        mv : 'mainview.MainView' = self.GetFrame()
+        mv.savebtn.insert_visit()
 
     def onUpdateVisit(self, e):
-        self.GetFrame().savebtn.update_visit()
+        mv : 'mainview.MainView' = self.GetFrame()
+        mv.savebtn.update_visit()
 
     def onDeleteVisit(self, e):
-        mv = self.GetFrame()
+        mv : 'mainview.MainView' = self.GetFrame()
         try:
             mv.con.delete(Visit, mv.state.visit.id)
             wx.MessageBox("Xóa thành công", "OK")
@@ -159,39 +170,44 @@ class MyMenuBar(wx.MenuBar):
             wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
 
     def onDeleteQueueList(self, e):
-        mv = self.GetFrame()
+        mv : 'mainview.MainView' = self.GetFrame()
         try:
             mv.con.delete_queuelist_by_patient_id(mv.state.patient.id)
             wx.MessageBox("Xóa thành công", "OK")
-            mv.refresh()
+            mv.state.refresh()
         except sqlite3.Error as error:
             wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
 
     def onUpdateQuantity(self, e):
-        self.GetFrame().updatequantitybtn.onClick(None)
+        mv : 'mainview.MainView' = self.GetFrame()
+        mv.updatequantitybtn.onClick(None)
 
     def onPrint(self, e):
         printout = PrintOut(self.Parent)
         wx.Printer(wx.PrintDialogData(printdata)).Print(self, printout, True)
 
     def onPreview(self, e):
-        printout = PrintOut(self.Parent, preview=True)
+        mv : 'mainview.MainView' = self.GetFrame()
+        printout = PrintOut(mv, preview=True)
         printdialogdata = wx.PrintDialogData(printdata)
         printpreview = wx.PrintPreview(printout, data=printdialogdata)
         printpreview.SetZoom(85)
-        frame = wx.PreviewFrame(printpreview, self.GetFrame())
+        frame = wx.PreviewFrame(printpreview, mv)
         frame.Maximize()
         frame.Initialize()
         frame.Show()
 
     def onWarehouseSetup(self, e):
-        WarehouseSetupDialog(self.GetFrame()).ShowModal()
+        mv : 'mainview.MainView' = self.GetFrame()
+        WarehouseSetupDialog(mv).ShowModal()
 
     def onSampleSetup(self, e):
-        SampleDialog(parent=self.GetFrame()).ShowModal()
+        mv : 'mainview.MainView' = self.GetFrame()
+        SampleDialog(mv).ShowModal()
 
     def onSetup(self, e):
-        SetupDialog(self.GetFrame()).ShowModal()
+        mv : 'mainview.MainView' = self.GetFrame()
+        SetupDialog().ShowModal()
 
     def onMenuJSON(self, e):
         if sys.platform == "win32":

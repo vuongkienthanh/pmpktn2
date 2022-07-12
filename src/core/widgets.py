@@ -1,8 +1,7 @@
 from db.db_class import *
 import core.other_func as otf
 from core import mainview
-from core.mainview_books.order_book_pages.prescription import page
-from core.initialize import k_number, k_special, k_decimal, k_hash, k_slash
+from core.initialize import k_number, k_special, k_decimal, k_hash, k_slash, k_tab
 from core.printing.printer import PrintOut, printdata
 from path_init import weight_bm
 
@@ -17,12 +16,19 @@ import sqlite3
 
 
 class DatePicker(wx.adv.CalendarCtrl):
-    def __init__(self, parent: wx.Window):
+    def __init__(self, parent: wx.Window, **kwargs):
         super().__init__(parent, style=wx.adv.CAL_MONDAY_FIRST |
-                         wx.adv.CAL_SHOW_SURROUNDING_WEEKS)
+                         wx.adv.CAL_SHOW_SURROUNDING_WEEKS, **kwargs)
 
     def GetDate(self) -> dt.date:
         return wx.wxdate2pydate(super().GetDate()).date()
+
+    def checked_GetDate(self) -> dt.date | None:
+        d = self.GetDate()
+        if d == dt.date.today():
+            return None
+        else:
+            return d
 
     def SetDate(self, date: dt.date) -> None:
         has_range, lower_bound, upper_bound = self.GetDateRange()
@@ -37,8 +43,8 @@ class DatePicker(wx.adv.CalendarCtrl):
 
 
 class DateTextCtrl(wx.TextCtrl):
-    def __init__(self, parent: wx.Window):
-        super().__init__(parent)
+    def __init__(self, parent: wx.Window, **kwargs):
+        super().__init__(parent, **kwargs)
         self.SetHint("DD/MM/YYYY")
         self.format = "%d/%m/%Y"
         self.bg = self.GetBackgroundColour()
@@ -70,19 +76,19 @@ class DateTextCtrl(wx.TextCtrl):
 
 
 class AgeCtrl(wx.TextCtrl):
-    def __init__(self, parent: wx.Window):
-        super().__init__(parent, style=wx.TE_READONLY)
+    def __init__(self, parent: wx.Window, **kwargs):
+        super().__init__(parent, style=wx.TE_READONLY, **kwargs)
 
     def SetBirthdate(self, bd: dt.date):
         self.SetValue(otf.bd_to_age(bd))
 
 
 class GenderChoice(wx.Choice):
-    def __init__(self, parent: wx.Window):
+    def __init__(self, parent: wx.Window, **kwargs):
         super().__init__(parent, choices=[
             str(Gender(0)),
             str(Gender(1))
-        ])
+        ], **kwargs)
         self.Selection = 0
 
     def GetGender(self) -> Gender:
@@ -93,8 +99,8 @@ class GenderChoice(wx.Choice):
 
 
 class PhoneTextCtrl(wx.TextCtrl):
-    def __init__(self, parent: wx.Window):
-        super().__init__(parent)
+    def __init__(self, parent: wx.Window, **kwargs):
+        super().__init__(parent, **kwargs)
         self.Bind(wx.EVT_CHAR, self.onChar)
 
     def onChar(self, e: wx.KeyEvent):
@@ -103,18 +109,18 @@ class PhoneTextCtrl(wx.TextCtrl):
 
 
 class NumTextCtrl(wx.TextCtrl):
-    def __init__(self, parent: wx.Window):
-        super().__init__(parent)
+    def __init__(self, parent: wx.Window, **kwargs):
+        super().__init__(parent, **kwargs)
         self.Bind(wx.EVT_CHAR, self.onChar)
 
     def onChar(self, e: wx.KeyEvent):
-        if e.KeyCode in k_number:
+        if e.KeyCode in k_number + k_tab + k_special:
             e.Skip()
 
 
 class WeightCtrl(wx.SpinCtrlDouble):
-    def __init__(self, parent: 'mainview.MainView'):
-        super().__init__(parent)
+    def __init__(self, parent: 'mainview.MainView', **kwargs):
+        super().__init__(parent, **kwargs)
         self.SetDigits(1)
         self.Disable()
 
@@ -144,9 +150,9 @@ class GetWeightBtn(wx.BitmapButton):
 
 
 class DaysCtrl(wx.SpinCtrl):
-    def __init__(self, parent: 'mainview.MainView'):
+    def __init__(self, parent: 'mainview.MainView', **kwargs):
         super().__init__(parent, style=wx.SP_ARROW_KEYS,
-                         initial=parent.config["so_ngay_toa_ve_mac_dinh"])
+                         initial=parent.config["so_ngay_toa_ve_mac_dinh"], **kwargs)
         self.mv = parent
         self.SetRange(0, 100)
         self.Bind(wx.EVT_SPINCTRL, self.onSpin)
@@ -157,16 +163,16 @@ class DaysCtrl(wx.SpinCtrl):
 
 
 class RecheckCtrl(wx.SpinCtrl):
-    def __init__(self, parent: 'mainview.MainView'):
+    def __init__(self, parent: 'mainview.MainView', **kwargs):
         super().__init__(parent, style=wx.SP_ARROW_KEYS,
-                         initial=parent.config["so_ngay_toa_ve_mac_dinh"])
+                         initial=parent.config["so_ngay_toa_ve_mac_dinh"], **kwargs)
         self.SetRange(0, 100)
         self.Disable()
 
 
 class NoRecheck(wx.Button):
-    def __init__(self, parent: 'mainview.MainView'):
-        super().__init__(parent, label="Không tái khám")
+    def __init__(self, parent: 'mainview.MainView', **kwargs):
+        super().__init__(parent, label="Không tái khám", **kwargs)
         self.mv = parent
         self.Bind(wx.EVT_BUTTON, self.onClick)
         self.Disable()
@@ -199,8 +205,8 @@ class UpdateQuantityBtn(wx.Button):
 
 
 class PriceCtrl(wx.TextCtrl):
-    def __init__(self, parent: 'mainview.MainView'):
-        super().__init__(parent)
+    def __init__(self, parent: 'mainview.MainView', **kwargs):
+        super().__init__(parent, **kwargs)
         self.mv = parent
 
     def SetPrice(self):
@@ -226,12 +232,13 @@ class PriceCtrl(wx.TextCtrl):
 
 
 class Follow(wx.ComboBox):
-    def __init__(self, parent: 'mainview.MainView'):
+    def __init__(self, parent: 'mainview.MainView', **kwargs):
         super().__init__(
             parent,
             style=wx.CB_DROPDOWN,
             choices=[f"{i}: {j}" for i,
-                     j in parent.config['loi_dan_do'].items()]
+                     j in parent.config['loi_dan_do'].items()],
+            **kwargs
         )
         self.mv = parent
         self.SetSelection(0)
