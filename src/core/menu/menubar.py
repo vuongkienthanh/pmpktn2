@@ -207,7 +207,7 @@ class MyMenuBar(wx.MenuBar):
 
     def onSetup(self, e):
         mv : 'mainview.MainView' = self.GetFrame()
-        SetupDialog().ShowModal()
+        SetupDialog(mv).ShowModal()
 
     def onMenuJSON(self, e):
         if sys.platform == "win32":

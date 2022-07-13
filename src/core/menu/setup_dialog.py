@@ -1,4 +1,5 @@
 from path_init import APP_DIR
+from core import mainview
 import wx
 import wx.adv as adv
 import json
@@ -6,40 +7,47 @@ import os.path
 
 
 class SetupDialog(wx.Dialog):
-    def __init__(self, parent):
+    def __init__(self, parent:'mainview.MainView'):
         super().__init__(parent, title="Cài đặt hệ thống")
-        self.name = wx.TextCtrl(self, value=parent.config['ten_phong_kham'])
+        self.mv = parent
+        self.clinic_name = wx.TextCtrl(self, value=self.mv.config['ten_phong_kham'], name="Tên phòng khám")
+        self.doctor_name = wx.TextCtrl(self, value=self.mv.config['ky_ten_bac_si'], name="Ký tên bác sĩ")
         self.price = wx.TextCtrl(
-            self, value=str(parent.config["cong_kham_benh"]))
+            self, value=str(self.mv.config["cong_kham_benh"]), name="Công khám bệnh")
         self.days = wx.SpinCtrl(
-            self, initial=parent.config["so_ngay_toa_ve_mac_dinh"])
+            self, initial=self.mv.config["so_ngay_toa_ve_mac_dinh"], name="Số ngày toa về mặc định")
         self.alert = wx.SpinCtrl(
-            self, initial=parent.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"], max=10000)
-        self.unit = adv.EditableListBox(self, style=adv.EL_DEFAULT_STYLE|adv.EL_NO_REORDER)
-        self.unit.GetListCtrl().DeleteAllItems()
-        for item in parent.config["thuoc_ban_mot_don_vi"]:
-            self.unit.GetListCtrl().Append((item,))
+            self, initial=self.mv.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"], max=10000, name="Lượng thuốc tối thiểu để báo động đỏ")
+        self.unit = adv.EditableListBox(self, style=adv.EL_DEFAULT_STYLE|adv.EL_NO_REORDER, name="Thuốc bán một đơn vị")
+        lc : wx.ListCtrl = self.unit.GetListCtrl()
+        lc.DeleteAllItems()
+        for item in self.mv.config["thuoc_ban_mot_don_vi"]:
+            lc.Append((item,))
+        
+        self.cancelbtn = wx.Button(self, id=wx.ID_CANCEL)
+        self.okbtn = wx.Button(self, id=wx.ID_OK)
 
-        def static(s):
-            return (wx.StaticText(self, label=s), 0, wx.ALIGN_CENTER_VERTICAL)
 
-        def widget(w):
-            return (w, 1, wx.EXPAND)
-        entry_sizer = wx.FlexGridSizer(5, 2, 5, 5)
+        def widget(w:wx.Window):
+            s :str = w.GetName()
+            return (wx.StaticText(self, label=s), 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5), (w, 1, wx.EXPAND|wx.ALL, 5)
+
+        entry_sizer = wx.FlexGridSizer(6, 2, 5, 5)
         entry_sizer.AddMany([
-            static("Tên phòng khám:"),
-            widget(self.name),
-            static("Công khám bệnh:"),
-            widget(self.price),
-            static("Số ngày toa về mặc định:"),
-            widget(self.days),
-            static("Lượng thuốc tối thiểu để báo động đỏ:"),
-            widget(self.alert),
-            static("Thuốc bán một đơn vị:"),
-            widget(self.unit)
+            *widget(self.clinic_name),
+            *widget(self.doctor_name),
+            *widget(self.price),
+            *widget(self.days),
+            *widget(self.alert),
+            *widget(self.unit)
         ])
 
-        btn_sizer = self.CreateStdDialogButtonSizer(wx.OK | wx.CANCEL)
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.AddMany([
+            (0,0,1),
+            (self.cancelbtn, 0, wx.ALL,5),
+            (self.okbtn, 0, wx.ALL, 5),
+        ])
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddMany([
             (entry_sizer, 0, wx.EXPAND),
@@ -47,12 +55,12 @@ class SetupDialog(wx.Dialog):
         ])
         self.SetSizerAndFit(sizer)
 
-        okbtn = btn_sizer.Children[3].Window
+        okbtn :wx.Button = btn_sizer.Children[3].Window
         okbtn.Bind(wx.EVT_BUTTON, self.onOk)
 
     def onOk(self, e):
         try:
-            self.Parent.config['ten_phong_kham'] = self.name.Value
+            self.Parent.config['ten_phong_kham'] = self.clinic_name.Value
             self.Parent.config['cong_kham_benh'] = int(self.price.Value)
             self.Parent.config['so_ngay_toa_ve_mac_dinh'] = self.days.GetValue()
             self.Parent.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"] = self.alert.GetValue()
