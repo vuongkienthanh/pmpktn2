@@ -66,7 +66,7 @@ class State():
         self.mv.recheck.Enable()
         self.mv.norecheck.Enable()
         self.visitlist = self.mv.con.select_visits_by_patient_id(p.id, limit=5)
-        idx = self.mv.patient_book.Selection
+        idx :int = self.mv.patient_book.Selection
         self.mv.GetMenuBar().menuUpdatePatient.Enable()
         self.mv.GetMenuBar().menuDeletePatient.Enable()
         self.mv.GetMenuBar().menuInsertVisit.Enable()

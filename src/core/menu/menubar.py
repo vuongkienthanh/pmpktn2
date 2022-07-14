@@ -134,13 +134,15 @@ class MyMenuBar(wx.MenuBar):
         page = mv.patient_book.GetPage(mv.patient_book.Selection)
         idx = page.GetFirstSelected()
         assert mv.state.patient is not None
-        if EditPatientDialog(mv, mv.state.patient).ShowModal() == wx.ID_OK:
+        if EditPatientDialog(mv).ShowModal() == wx.ID_OK:
             page.EnsureVisible(idx)
 
     def onDeletePatient(self, e):
         mv : 'mainview.MainView' = self.GetFrame()
+        p = mv.state.patient
+        assert p is not None
         try:
-            mv.con.delete(Patient, mv.state.patient.id)
+            mv.con.delete(Patient, p.id)
             wx.MessageBox("Xóa thành công", "OK")
             mv.state.queuelist = mv.state.get_queuelist()
             mv.state.todaylist = mv.state.get_todaylist()
@@ -162,8 +164,10 @@ class MyMenuBar(wx.MenuBar):
 
     def onDeleteVisit(self, e):
         mv : 'mainview.MainView' = self.GetFrame()
+        v = mv.state.visit
+        assert v is not None
         try:
-            mv.con.delete(Visit, mv.state.visit.id)
+            mv.con.delete(Visit, v.id)
             wx.MessageBox("Xóa thành công", "OK")
             mv.state.refresh()
         except sqlite3.Error as error:
@@ -171,8 +175,10 @@ class MyMenuBar(wx.MenuBar):
 
     def onDeleteQueueList(self, e):
         mv : 'mainview.MainView' = self.GetFrame()
+        p = mv.state.patient
+        assert p is not None
         try:
-            mv.con.delete_queuelist_by_patient_id(mv.state.patient.id)
+            mv.con.delete_queuelist_by_patient_id(p.id)
             wx.MessageBox("Xóa thành công", "OK")
             mv.state.refresh()
         except sqlite3.Error as error:

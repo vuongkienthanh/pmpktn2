@@ -1,13 +1,14 @@
 from core.initialize import *
+from core import mainview
 from core.menu.patient_dialog import EditPatientDialog
-from db.db_class import Patient, QueueList,QueueList
+from db.db_class import Patient, QueueList, QueueList
 import wx
 import sqlite3
 
 
 class SearchPatientList(wx.ListCtrl):
 
-    def __init__(self, parent, num_of_lines):
+    def __init__(self, parent: 'FindPatientDialog', num_of_lines: int):
         super().__init__(
             parent,
             style=wx.LC_REPORT | wx.LC_SINGLE_SEL,
@@ -18,26 +19,26 @@ class SearchPatientList(wx.ListCtrl):
         self.AppendColumn('Giới', width=-2)
         self.AppendColumn('Ngày sinh'.ljust(10, ' '), width=-2)
         self.num_of_lines = num_of_lines
-        self.page_index :int = 0
-        self.saved_pages :list[list]= []
-        self.temp_page :list = []
-        self.cur_page :list = []
-        self._done :bool= False
-        self.pid :int |None= None
+        self.page_index: int = 0
+        self.saved_pages: list[list] = []
+        self.temp_page: list = []
+        self.cur_page: list = []
+        self._done: bool = False
+        self.pid: int | None = None
 
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
 
-    def onSelect(self, e):
-        index = e.GetIndex()
-        self.pid = int(self.GetItemText(index, 0))
+    def onSelect(self, e: wx.ListEvent):
+        idx: int = e.Index
+        self.pid = int(self.GetItemText(idx, 0))
         e.Skip()
 
-    def onDeselect(self, e):
+    def onDeselect(self, e: wx.ListEvent):
         self.pid = None
         e.Skip()
 
-    def append_ui(self, row):
+    def append_ui(self, row: sqlite3.Row):
         self.Append([
             row['pid'],
             row['name'],
@@ -51,7 +52,7 @@ class SearchPatientList(wx.ListCtrl):
         self.page_index += 1
         self.DeleteAllItems()
 
-    def append(self, row):
+    def append(self, row: sqlite3.Row):
         if len(self.cur_page) == self.num_of_lines:
             self.new_page()
         self.cur_page.append(row)
@@ -84,7 +85,7 @@ class SearchPatientList(wx.ListCtrl):
             for row in self.cur_page:
                 self.append_ui(row)
 
-    def is_done(self):
+    def is_done(self) -> bool:
         return self._done
 
     def done(self):
@@ -100,13 +101,14 @@ class SearchPatientList(wx.ListCtrl):
 
 
 class FindPatientDialog(wx.Dialog):
-    def __init__(self, parent):
+    def __init__(self, parent: 'mainview.MainView'):
         super().__init__(parent, title="Tìm bệnh nhân")
+        self.mv = parent
         self.cur = None
         self.num_of_lines = 15
         self.search = wx.SearchCtrl(self)
         self.search.SetHint("Tên bệnh nhân")
-        self.listctrl = SearchPatientList(self, self.num_of_lines)
+        self.lc = SearchPatientList(self, self.num_of_lines)
 
         self.prevbtn = wx.Button(self, label="<<Trước")
         self.nextbtn = wx.Button(self, label="Sau>>")
@@ -122,47 +124,73 @@ class FindPatientDialog(wx.Dialog):
         self.editbtn.Disable()
         self.delbtn.Disable()
 
-        self._bind()
-        self._setSizer()
+        def widget(w): return (w, 0, wx.EXPAND | wx.ALL, 5)
 
-    def _bind(self):
-        self.Bind(wx.EVT_SEARCH, self.onSearch, self.search)
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect, self.listctrl)
-        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect, self.listctrl)
-        self.Bind(wx.EVT_BUTTON, self.onAll, self.allbtn)
-        self.Bind(wx.EVT_BUTTON, self.onNext, self.nextbtn)
-        self.Bind(wx.EVT_BUTTON, self.onPrev, self.prevbtn)
-        self.Bind(wx.EVT_BUTTON, self.onAddqueue, self.addqueuebtn)
-        self.Bind(wx.EVT_BUTTON, self.onEdit, self.editbtn)
-        self.Bind(wx.EVT_BUTTON, self.onDelete, self.delbtn)
+        navi_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        navi_sizer.AddMany([
+            (0, 0, 1),
+            widget(self.allbtn),
+            (0, 0, 1),
+            widget(self.prevbtn),
+            widget(self.nextbtn),
+            (0, 0, 1),
+        ])
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.AddMany([
+            (0, 0, 1),
+            widget(self.addqueuebtn),
+            widget(self.editbtn),
+            widget(self.delbtn),
+            widget(self.cancelbtn),
+        ])
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.AddMany([
+            widget(self.search),
+            widget(wx.StaticText(self, label="Danh sách bệnh nhân")),
+            widget(self.lc),
+            widget(navi_sizer),
+            widget(btn_sizer),
+        ])
+        self.SetSizerAndFit(sizer)
+
+        self.search.Bind(wx.EVT_SEARCH, self.onSearch)
+        self.lc.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
+        self.lc.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
+        self.allbtn.Bind(wx.EVT_BUTTON, self.onAll)
+        self.nextbtn.Bind(wx.EVT_BUTTON, self.onNext)
+        self.prevbtn.Bind(wx.EVT_BUTTON, self.onPrev)
+        self.addqueuebtn.Bind(wx.EVT_BUTTON, self.onAddqueue)
+        self.editbtn.Bind(wx.EVT_BUTTON, self.onEdit)
+        self.delbtn.Bind(wx.EVT_BUTTON, self.onDelete)
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
-    def onSearch(self, e):
-        self.rebuild(e.GetString())
+    def onSearch(self, e: wx.CommandEvent):
+        s: str = e.GetString()
+        self.rebuild(s)
 
     def rebuild(self, s: str):
-        self.listctrl.clear()
-        self.cur = self.Parent.con.execute("""
+        self.lc.clear()
+        self.cur = self.mv.con.execute(f"""
             SELECT id AS pid, name, gender, birthdate
-            FROM patients
+            FROM {Patient.table_name}
             WHERE name LIKE ?
         """, ('%' + s + '%',))
         self.build()
         self.next_prev_status_check()
 
     def build(self):
-        if self.cur is not None:
-            for _ in range(self.num_of_lines):
-                row = self.cur.fetchone()
-                if row is not None:
-                    self.listctrl.append(row)
-                else:
-                    self.listctrl.done()
-                    break
+        assert self.cur is not None
+        for _ in range(self.num_of_lines):
+            row = self.cur.fetchone()
+            if row is not None:
+                self.lc.append(row)
+            else:
+                self.lc.done()
+                break
 
     def clear(self):
         self.search.ChangeValue('')
-        self.listctrl.clear()
+        self.lc.clear()
         self.prevbtn.Disable()
         self.nextbtn.Disable()
         self.addqueuebtn.Disable()
@@ -170,124 +198,84 @@ class FindPatientDialog(wx.Dialog):
         self.delbtn.Disable()
 
     def next_prev_status_check(self):
-        if self.listctrl.is_first():
+        if self.lc.is_first():
             self.prevbtn.Disable()
         else:
             self.prevbtn.Enable()
 
-        if self.listctrl.is_last():
-            if self.listctrl.is_done():
+        if self.lc.is_last():
+            if self.lc.is_done():
                 self.nextbtn.Disable()
             else:
                 self.nextbtn.Enable()
         else:
             self.nextbtn.Enable()
 
-    def onSelect(self, e):
+    def onSelect(self, e: wx.CommandEvent):
         self.addqueuebtn.Enable()
         self.editbtn.Enable()
         self.delbtn.Enable()
         e.Skip()
 
-    def onDeselect(self, e):
+    def onDeselect(self, e: wx.CommandEvent):
         self.addqueuebtn.Disable()
         self.editbtn.Disable()
         self.delbtn.Disable()
         e.Skip()
 
-    def onAll(self, e):
-        self.listctrl.clear()
-        self.cur = self.Parent.con.execute("""
-            SELECT id AS pid, name, gender, birthdate
-            FROM patients
-        """)
-        self.build()
-        self.next_prev_status_check()
+    def onAll(self, e: wx.CommandEvent):
+        self.rebuild('')
 
-    def onNext(self, e):
-        if (not self.listctrl.is_done()) and self.listctrl.is_last():
+    def onNext(self, e: wx.CommandEvent):
+        if (not self.lc.is_done()) and self.lc.is_last():
             self.build()
         else:
-            self.listctrl.next()
+            self.lc.next()
         self.next_prev_status_check()
 
-    def onPrev(self, e):
-        self.listctrl.prev()
+    def onPrev(self, e: wx.CommandEvent):
+        self.lc.prev()
         self.next_prev_status_check()
 
-    def onAddqueue(self, e):
-        pid = self.listctrl.pid
-        if pid:
-            try:
-                self.Parent.con.insert(QueueList, {'patient_id':pid})
-                wx.MessageBox("Thêm vào danh sách chờ thành công", "OK")
-                self.Parent.refresh()
-            except sqlite3.IntegrityError as error:
-                wx.MessageBox("Đã có tên trong danh sách chờ.\n" +
-                              str(error), "Lỗi", parent=self)
-            finally:
-                item = self.listctrl.GetFirstSelected()
-                self.listctrl.Select(item, 0)
-                self.search.SetFocus()
-
-    def onEdit(self, e):
-        pid = self.listctrl.pid
-        p = self.Parent.con.select(Patient, pid)
-        if p:
-            if EditPatientDialog(self.Parent, p).ShowModal() == wx.ID_OK:
-                self.clear()
-            item = self.listctrl.GetFirstSelected()
-            self.listctrl.Select(item, 0)
+    def onAddqueue(self, e: wx.CommandEvent):
+        pid = self.lc.pid
+        assert pid is not None
+        try:
+            self.mv.con.insert(QueueList, {'patient_id': pid})
+            wx.MessageBox("Thêm vào danh sách chờ thành công", "OK")
+            self.mv.state.queuelist = self.mv.state.get_queuelist()
+        except sqlite3.IntegrityError as error:
+            wx.MessageBox(f"Đã có tên trong danh sách chờ.\n{error}", "Lỗi")
+        finally:
+            item: int = self.lc.GetFirstSelected()
+            self.lc.Select(item, 0)
             self.search.SetFocus()
 
-    def onDelete(self, e):
-        pid = self.listctrl.pid
-        if pid:
-            try:
-                self.Parent.con.delete(Patient, pid)
-                wx.MessageBox("Xóa thành công", "OK")
-                self.Parent.refresh()
-                self.clear()
-            except sqlite3.Error as error:
-                wx.MessageBox("Lỗi không xóa được\n"+str(error),  "Lỗi")
-            finally:
-                self.search.SetFocus()
+    def onEdit(self, e: wx.CommandEvent):
+        pid = self.lc.pid
+        assert pid is not None
+        if EditFindPatientDialog(self.mv).ShowModal() == wx.ID_OK:
+            self.clear()
+        item = self.lc.GetFirstSelected()
+        self.lc.Select(item, 0)
+        self.search.SetFocus()
+
+    def onDelete(self, e: wx.CommandEvent):
+        pid = self.lc.pid
+        assert pid is not None
+        try:
+            self.mv.con.delete(Patient, pid)
+            wx.MessageBox("Xóa thành công", "OK")
+            self.mv.state.refresh()
+            self.clear()
+        except sqlite3.Error as error:
+            wx.MessageBox(f"Lỗi không xóa được\n{error}", "Lỗi")
+        finally:
+            self.search.SetFocus()
 
     def onClose(self, e):
         if self.cur is not None:
             self.cur.close()
         e.Skip()
 
-    def _setSizer(self):
-        def create_tuple(w): return (w, 0, wx.EXPAND | wx.ALL, 3)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        sizer.Add(self.search, 0, wx.EXPAND | wx.ALL, 10)
-        sizer.Add(wx.StaticText(self, label="Danh sách bệnh nhân"),
-                  0, wx.EXPAND | wx.ALL ^ wx.BOTTOM, 10)
-        sizer.Add(self.listctrl, 1, wx.EXPAND | wx.ALL, 10)
-
-        navi_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        navi_sizer.AddStretchSpacer()
-        navi_sizer.Add(self.allbtn, 0, wx.EXPAND | wx.ALL, 3)
-        navi_sizer.AddStretchSpacer()
-        navi_sizer.AddMany([
-            create_tuple(self.prevbtn),
-            create_tuple(self.nextbtn)
-        ])
-        navi_sizer.AddStretchSpacer()
-        sizer.Add(navi_sizer, 0, wx.EXPAND)
-
-        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        btn_sizer.AddStretchSpacer()
-        btn_sizer.AddMany([
-            create_tuple(self.addqueuebtn),
-            create_tuple(self.editbtn),
-            create_tuple(self.delbtn),
-            create_tuple(self.cancelbtn),
-        ])
-
-        sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 10)
-
-        self.SetSizerAndFit(sizer)
+class EditFindPatientDialog:...

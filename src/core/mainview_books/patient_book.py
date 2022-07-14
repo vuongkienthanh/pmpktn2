@@ -8,7 +8,7 @@ import wx
 
 class PatientBook(wx.Notebook):
 
-    def __init__(self, parent:'mainview.MainView'):
+    def __init__(self, parent: 'mainview.MainView'):
         super().__init__(parent)
         self.mv = parent
         self.page0 = QueuingPatientList(self)
@@ -30,6 +30,8 @@ class PatientListCtrl(wx.ListCtrl):
 
     def __init__(self, parent: PatientBook) -> None:
         super().__init__(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        self.parent = parent
+        self.mv = parent.mv
         self.AppendColumn('Mã BN', width=-1)
         self.AppendColumn('Họ tên'.ljust(40, ' '), width=-2)
         self.AppendColumn('Giới', width=-2)
@@ -49,13 +51,14 @@ class PatientListCtrl(wx.ListCtrl):
     def append_ui(self, item): ...
     def onSelect(self, e): ...
     def onDeselect(self, e): ...
-    def onDoubleClick(self,e):
-        EditPatientDialog(self.Parent.Parent, self.Parent.Parent.state.patient).ShowModal()
+
+    def onDoubleClick(self, e):
+        EditPatientDialog(self.mv).ShowModal()
 
 
 class QueuingPatientList(PatientListCtrl):
 
-    def __init__(self, parent:PatientBook):
+    def __init__(self, parent: PatientBook):
         super().__init__(parent)
         self.AppendColumn('Giờ đăng ký'.ljust(20, ' '), width=-2)
 
@@ -69,19 +72,18 @@ class QueuingPatientList(PatientListCtrl):
         ])
 
     def onSelect(self, e: wx.ListEvent) -> None:
-        mv = self.Parent.Parent
-        pid = mv.state.queuelist[e.Index]['pid']
-        mv.state.patient = mv.con.select(Patient, pid)
+        idx: int = e.Index
+        pid: int = self.mv.state.queuelist[idx]['pid']
+        self.mv.state.patient = self.mv.con.select(Patient, pid)
 
     def onDeselect(self, e: wx.ListEvent) -> None:
-        self.Parent.Parent.state.patient = None
+        self.mv.state.patient = None
 
 
 class TodayPatientList(PatientListCtrl):
 
-    def __init__(self, parent:PatientBook):
+    def __init__(self, parent: PatientBook):
         super().__init__(parent)
-        self.mv = parent.mv
         self.AppendColumn('Giờ khám'.ljust(20, ' '), width=-2)
 
     def append_ui(self, row: sqlite3.Row) -> None:
@@ -94,11 +96,11 @@ class TodayPatientList(PatientListCtrl):
         ])
 
     def onSelect(self, e: wx.ListEvent):
-        pid = self.mv.state.todaylist[e.Index]['pid']
+        idx: int = e.Index
+        pid: int = self.mv.state.todaylist[idx]['pid']
         self.mv.state.patient = self.mv.con.select(Patient, pid)
-        vid = self.mv.state.todaylist[e.Index]['vid']
+        vid: int = self.mv.state.todaylist[idx]['vid']
         self.mv.state.visit = self.mv.con.select(Visit, vid)
-        
 
     def onDeselect(self, e: wx.ListEvent):
         self.mv.state.patient = None
