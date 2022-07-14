@@ -45,24 +45,22 @@ def check_none(val: Any|None):
     return str(val) if val else ''
 
 
-def calc_quantity(times, dose, days, sale_unit, list_of_unit):
-    def calc(times, dose, days):
+def calc_quantity(times:int, dose:str, days:int, sale_unit:str |None, list_of_unit:list[str]) -> int |None:
+    def calc(times:int, dose:str, days:int) -> int:
         if '/' in dose:
             numer, denom = [int(i) for i in dose.split('/')]
-            dose = Fraction(numer, denom)
-            return round(times * dose * days)
+            return round(times * Fraction(numer, denom) * days)
         else:
             return round(times * float(dose) * days)
     try:
         if sale_unit is not None:
-            if sale_unit.casefold() in [item.casefold() for item in list_of_unit]:
+            if sale_unit.casefold() in (item.casefold() for item in list_of_unit):
                 return 1
             else:
                 return calc(times, dose, days)
         else:
             return calc(times, dose, days)
     except Exception as e:
-        print(e)
         return None
 
 

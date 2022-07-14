@@ -29,7 +29,6 @@ class WarehouseSetupDialog(wx.Dialog):
         self.editbtn = wx.Button(self, label="Cập nhật")
         self.delbtn = wx.Button(self, label="Xóa")
         cancelbtn = wx.Button(self, id=wx.ID_CANCEL)
-
         self.editbtn.Disable()
         self.delbtn.Disable()
 
@@ -38,7 +37,6 @@ class WarehouseSetupDialog(wx.Dialog):
             (wx.StaticText(self, label="Tìm kiếm"), 0, wx.ALL | wx.ALIGN_CENTER, 5),
             (self.search, 1, wx.ALL, 5),
         ])
-
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_sizer.AddMany([
             (0, 0, 1),
@@ -46,7 +44,6 @@ class WarehouseSetupDialog(wx.Dialog):
             (self.editbtn, 0, wx.RIGHT, 5),
             (self.delbtn, 0, wx.RIGHT, 5),
             (cancelbtn, 0, wx.RIGHT, 5)
-
         ])
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddMany([
@@ -71,11 +68,11 @@ class WarehouseSetupDialog(wx.Dialog):
         self._list = []
         self.lc.DeleteAllItems()
 
-    def get_search_value(self) ->str:
+    def get_search_value(self) -> str:
         s: str = self.search.GetValue()
         return s.strip().casefold()
 
-    def check_search_str_to_wh(self, wh:Warehouse, s:str|None=None) -> bool:
+    def check_search_str_to_wh(self, wh: Warehouse, s: str | None = None) -> bool:
         if s is None:
             _s = self.get_search_value()
         else:
@@ -110,14 +107,13 @@ class WarehouseSetupDialog(wx.Dialog):
             otf.check_none(wh.made_by),
             otf.check_none(wh.note)
         ])
-        self._checked_change_color(wh, len(self._list) - 1)
+        self.check_min_quantity(wh, len(self._list) - 1)
 
     def delete(self, idx: int):
         self.lc.DeleteItem(idx)
         self._list.pop(idx)
 
-
-    def _checked_change_color(self, wh: Warehouse, idx: int):
+    def check_min_quantity(self, wh: Warehouse, idx: int):
         if wh.quantity <= self.mv.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"]:
             self.lc.SetItemTextColour(idx, wx.Colour(252, 3, 57))
 
@@ -187,16 +183,11 @@ class WarehouseDialog(wx.Dialog):
             self.sale_price
         )
 
-        self.okbtn.Bind(wx.EVT_BUTTON, self.onOkBtn)
-        self._setSizer()
-
-    def _setSizer(self):
         def widget(w):
             s: str = w.Name
             if w in self.mandatory:
                 s += '*'
             return (wx.StaticText(self, label=s), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 3), (w, 1, wx.EXPAND | wx.ALL, 3)
-
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_sizer.AddMany([
             (0, 0, 1),
@@ -227,6 +218,8 @@ class WarehouseDialog(wx.Dialog):
             (btn_sizer, 0, wx.EXPAND | wx.ALL, 5)
         ])
         self.SetSizerAndFit(sizer)
+
+        self.okbtn.Bind(wx.EVT_BUTTON, self.onOkBtn)
 
     def onOkBtn(self, e: wx.CommandEvent): ...
 
@@ -272,10 +265,9 @@ class NewWarehouseDialog(WarehouseDialog):
                 'note': otf.check_blank(self.note.Value)
             }
             try:
-                res = self.parent.mv.con.insert(Warehouse, wh)
-                assert res is not None
+                lastrowid = self.parent.mv.con.insert(Warehouse, wh)
+                assert lastrowid is not None
                 wx.MessageBox("Thêm mới thành công", "Thêm mới")
-                lastrowid, _ = res
                 new_wh = Warehouse(id=lastrowid, **wh)
                 self.parent.mv.state.warehouselist.append(new_wh)
                 if self.parent.check_search_str_to_wh(new_wh):

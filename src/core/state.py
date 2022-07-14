@@ -4,7 +4,7 @@ import core.other_func as otf
 
 
 import sqlite3
-
+import wx
 
 class State():
     '''Manager data, appearance and button state'''
@@ -66,14 +66,21 @@ class State():
         self.mv.recheck.Enable()
         self.mv.norecheck.Enable()
         self.visitlist = self.mv.con.select_visits_by_patient_id(p.id, limit=5)
+
         idx :int = self.mv.patient_book.Selection
-        self.mv.GetMenuBar().menuUpdatePatient.Enable()
-        self.mv.GetMenuBar().menuDeletePatient.Enable()
-        self.mv.GetMenuBar().menuInsertVisit.Enable()
-        self.mv.GetMenuBar().menuPrint.Enable()
-        self.mv.GetMenuBar().menuPreview.Enable()
-        self.mv.GetMenuBar().menuDeleteQueueList.Enable()
-        self.mv.patient_book.GetPage(idx).SetFocus()
+        page: wx.ListCtrl = self.mv.patient_book.GetPage(idx)
+
+        from core.menubar import MyMenuBar
+        menubar : MyMenuBar = self.mv.GetMenuBar()
+        menubar.menuUpdatePatient.Enable()
+        menubar.menuDeletePatient.Enable()
+        menubar.menuInsertVisit.Enable()
+        menubar.menuPrint.Enable()
+        menubar.menuPreview.Enable()
+        if idx == 0:
+            menubar.menuDeleteQueueList.Enable()
+
+        page.SetFocus()
 
     def onPatientDeselect(self) -> None:
         self.mv.name.ChangeValue('')
@@ -93,12 +100,15 @@ class State():
         self.mv.norecheck.Disable()
         self.visit = None
         self.visitlist = []
-        self.mv.GetMenuBar().menuUpdatePatient.Enable(False)
-        self.mv.GetMenuBar().menuDeletePatient.Enable(False)
-        self.mv.GetMenuBar().menuInsertVisit.Enable(False)
-        self.mv.GetMenuBar().menuPrint.Enable(False)
-        self.mv.GetMenuBar().menuPreview.Enable(False)
-        self.mv.GetMenuBar().menuDeleteQueueList.Enable(False)
+
+        from core.menubar import MyMenuBar
+        menubar : MyMenuBar = self.mv.GetMenuBar()
+        menubar.menuUpdatePatient.Enable(False)
+        menubar.menuDeletePatient.Enable(False)
+        menubar.menuInsertVisit.Enable(False)
+        menubar.menuPrint.Enable(False)
+        menubar.menuPreview.Enable(False)
+        menubar.menuDeleteQueueList.Enable(False)
 
     @property
     def visit(self) -> Visit | None:
@@ -140,7 +150,7 @@ class State():
         self.mv.recheck.SetValue(self.mv.config['so_ngay_toa_ve_mac_dinh'])
         self.mv.follow.SetSelection(0)
         self.linedruglist = []
-        self.mv.price.ChangeValue('')
+        self.mv.price.clear()
         self.mv.newvisitbtn.Disable()
         self.mv.savebtn.SetLabel("Lưu")
         self.mv.order_book.GetPage(0).reuse_druglist_btn.Disable()

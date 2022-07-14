@@ -94,7 +94,7 @@ class Connection():
     def execute(self, sql,*parameters):
         return self.sqlcon.execute(sql, *parameters)
 
-    def insert(self, t: type[BASE], base: dict) -> tuple[int, int] | None:
+    def insert(self, t: type[BASE], base: dict) -> int | None:
         with self.sqlcon as con:
             cur = con.execute(f"""
                 INSERT INTO {t.table_name} ({t.commna_joined_fields()})
@@ -103,7 +103,7 @@ class Connection():
                               base
                               )
             assert cur.lastrowid is not None
-            return (cur.lastrowid, cur.rowcount)
+            return cur.lastrowid
 
     def select(self, t: type[T], id: int) -> T | None:
         row = self.execute(
@@ -147,7 +147,7 @@ class Connection():
     def select_visits_by_patient_id(self, pid: int, limit: int = -1) -> list[sqlite3.Row]:
         query = f"""
             SELECT id AS vid, exam_datetime,diagnosis
-            FROM visits
+            FROM {Visit.table_name}
             WHERE visits.patient_id = {pid}
             ORDER BY exam_datetime DESC
             LIMIT {limit}
@@ -174,5 +174,5 @@ class Connection():
     def delete_queuelist_by_patient_id(self, pid) -> int | None:
         with self.sqlcon as con:
             return con.execute(
-                f"DELETE FROM queuelist WHERE patient_id = {pid}"
+                f"DELETE FROM {QueueList.table_name} WHERE patient_id = {pid}"
             ).rowcount

@@ -2,14 +2,13 @@ from db.db_class import *
 import core.other_func as otf
 from core import mainview
 from core.initialize import k_number, k_special, k_decimal, k_hash, k_slash, k_tab
-from core.printing.printer import PrintOut, printdata
+from core.printer import PrintOut, printdata
 from path_init import weight_bm
 
 import wx
 import wx.adv
 import datetime as dt
 from itertools import cycle
-from typing import Any
 import sqlite3
 
 # Generic
@@ -188,7 +187,7 @@ class UpdateQuantityBtn(wx.Button):
         self.Bind(wx.EVT_BUTTON, self.onClick)
         self.Disable()
 
-    def onClick(self, e):
+    def onClick(self, e:wx.CommandEvent|None):
         drug_list = self.mv.order_book.page0.drug_list
         for idx, item in enumerate(drug_list._list):
             q = otf.calc_quantity(
@@ -198,6 +197,7 @@ class UpdateQuantityBtn(wx.Button):
                 sale_unit=item['sale_unit'],
                 list_of_unit=self.mv.config['thuoc_ban_mot_don_vi']
             )
+            assert q is not None
             item['quantity'] = q
             drug_list.SetItem(
                 idx, 4, f"{q} {item['sale_unit'] or item['usage_unit']}")
@@ -208,6 +208,7 @@ class PriceCtrl(wx.TextCtrl):
     def __init__(self, parent: 'mainview.MainView', **kwargs):
         super().__init__(parent, **kwargs)
         self.mv = parent
+        self.clear()
 
     def SetPrice(self):
         lld = ((item['drug_id'], item['quantity'])
@@ -219,6 +220,9 @@ class PriceCtrl(wx.TextCtrl):
                 price += wh.sale_price * quantity
 
         price += self.mv.config['cong_kham_benh']
+        self.SetValue(self.num_to_str(price))
+    
+    def num_to_str(self, price:int) -> str:
         s = str(price)
         res = ''
         for char, cyc in zip(s[::-1], cycle(range(3))):
@@ -228,7 +232,10 @@ class PriceCtrl(wx.TextCtrl):
         else:
             if res[-1] == '.':
                 res = res[:-1]
-            self.SetValue(res[::-1])
+        return res[::-1]
+    
+    def clear(self):
+        self.ChangeValue(self.num_to_str(self.mv.config['cong_kham_benh']))
 
 
 class Follow(wx.ComboBox):
@@ -437,3 +444,143 @@ class SaveBtn(wx.Button):
                             f"Lỗi không lưu lượt khám được\n{error}", "Lỗi")
             except Exception as error:
                 wx.MessageBox(f"Lỗi không lưu lượt khám được\n{error}", "Lỗi")
+
+
+class PatientBook(wx.Notebook):
+
+    def __init__(self, parent: 'mainview.MainView'):
+        super().__init__(parent)
+        self.mv = parent
+        self.page0 = QueuingPatientList(self)
+        self.page1 = TodayPatientList(self)
+        self.AddPage(page=self.page0,
+                     text='Danh sách chờ khám', select=True)
+        self.AddPage(page=self.page1,
+                     text='Danh sách đã khám hôm nay')
+        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.onChanging)
+
+    def onChanging(self, e:wx.BookCtrlEvent):
+        old :int = e.GetOldSelection()
+        assert old != wx.NOT_FOUND
+        oldpage : wx.ListCtrl = self.GetPage(old)
+        item :int = oldpage.GetFirstSelected()
+        oldpage.Select(item, 0)
+
+
+class PatientListCtrl(wx.ListCtrl):
+
+    def __init__(self, parent: PatientBook) -> None:
+        super().__init__(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        self.parent = parent
+        self.mv = parent.mv
+        self.AppendColumn('Mã BN', width=-1)
+        self.AppendColumn('Họ tên'.ljust(40, ' '), width=-2)
+        self.AppendColumn('Giới', width=-2)
+        self.AppendColumn('Ngày sinh'.ljust(10, ' '), width=-2)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick)
+
+    def build(self, _list: list[sqlite3.Row]) -> None:
+        for item in _list:
+            self.append_ui(item)
+
+    def rebuild(self, _list: list[sqlite3.Row]) -> None:
+        self.DeleteAllItems()
+        self.build(_list)
+
+    def append_ui(self, item:sqlite3.Row): ...
+    def onSelect(self, e:wx.ListEvent): ...
+    def onDeselect(self, e:wx.ListEvent): ...
+
+    def onDoubleClick(self, e:wx.ListEvent):
+        from core.dialogs.patient_dialog import EditPatientDialog
+        EditPatientDialog(self.mv).ShowModal()
+
+
+class QueuingPatientList(PatientListCtrl):
+
+    def __init__(self, parent: PatientBook):
+        super().__init__(parent)
+        self.AppendColumn('Giờ đăng ký'.ljust(20, ' '), width=-2)
+
+    def append_ui(self, row: sqlite3.Row) -> None:
+        self.Append([
+            row['pid'],
+            row['name'],
+            str(row['gender']),
+            row['birthdate'].strftime("%d/%m/%Y"),
+            row['added_datetime'].strftime("%d/%m/%Y %H:%M")
+        ])
+
+    def onSelect(self, e: wx.ListEvent) -> None:
+        idx: int = e.Index
+        pid: int = self.mv.state.queuelist[idx]['pid']
+        self.mv.state.patient = self.mv.con.select(Patient, pid)
+
+    def onDeselect(self, e: wx.ListEvent) -> None:
+        self.mv.state.patient = None
+
+
+class TodayPatientList(PatientListCtrl):
+
+    def __init__(self, parent: PatientBook):
+        super().__init__(parent)
+        self.AppendColumn('Giờ khám'.ljust(20, ' '), width=-2)
+
+    def append_ui(self, row: sqlite3.Row) -> None:
+        self.Append([
+            row['pid'],
+            row['name'],
+            str(row['gender']),
+            row['birthdate'].strftime("%d/%m/%Y"),
+            row['exam_datetime'].strftime("%d/%m/%Y %H:%M")
+        ])
+
+    def onSelect(self, e: wx.ListEvent):
+        idx: int = e.Index
+        pid: int = self.mv.state.todaylist[idx]['pid']
+        self.mv.state.patient = self.mv.con.select(Patient, pid)
+        vid: int = self.mv.state.todaylist[idx]['vid']
+        self.mv.state.visit = self.mv.con.select(Visit, vid)
+
+    def onDeselect(self, e: wx.ListEvent):
+        self.mv.state.patient = None
+        self.mv.state.visit = None
+
+
+class VisitList(wx.ListCtrl):
+
+    def __init__(self, parent:'mainview.MainView'):
+        super().__init__(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        self.mv = parent
+        self.AppendColumn('Mã lượt khám', width=-2)
+        self.AppendColumn('Ngày giờ khám'.ljust(16, ' '), width=-2)
+        self.AppendColumn('Chẩn đoán'.ljust(40, ' '), width=-2)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
+
+    def build(self, _list:list[sqlite3.Row]) -> None:
+        for item in _list:
+            self.append_ui(item)
+
+    def append_ui(self, row: sqlite3.Row) -> None:
+        self.Append([
+            row['vid'],
+            row['exam_datetime'].strftime("%d/%m/%Y %H:%M"),
+            row['diagnosis']
+        ])
+
+    def rebuild(self, _list: list[sqlite3.Row]) -> None:
+        self.DeleteAllItems()
+        self.build(_list)
+
+    def onSelect(self, e: wx.ListEvent) -> None:
+        vid = self.mv.state.visitlist[e.Index]['vid']
+        self.mv.state.visit = self.mv.con.select(Visit, vid)
+
+    def onDeselect(self, e: wx.ListEvent) -> None:
+        self.mv.state.visit = None
+
+
+

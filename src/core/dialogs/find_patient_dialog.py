@@ -1,6 +1,7 @@
 from core.initialize import *
 from core import mainview
-from core.menu.patient_dialog import EditPatientDialog
+import core.other_func as otf
+from core.dialogs.patient_dialog import EditPatientDialog
 from db.db_class import Patient, QueueList, QueueList
 import wx
 import sqlite3
@@ -156,6 +157,7 @@ class FindPatientDialog(wx.Dialog):
         self.search.Bind(wx.EVT_SEARCH, self.onSearch)
         self.lc.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.lc.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
+        self.lc.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onEdit)
         self.allbtn.Bind(wx.EVT_BUTTON, self.onAll)
         self.nextbtn.Bind(wx.EVT_BUTTON, self.onNext)
         self.prevbtn.Bind(wx.EVT_BUTTON, self.onPrev)
@@ -170,6 +172,11 @@ class FindPatientDialog(wx.Dialog):
 
     def rebuild(self, s: str):
         self.lc.clear()
+        self.prevbtn.Disable()
+        self.nextbtn.Disable()
+        self.addqueuebtn.Disable()
+        self.editbtn.Disable()
+        self.delbtn.Disable()
         self.cur = self.mv.con.execute(f"""
             SELECT id AS pid, name, gender, birthdate
             FROM {Patient.table_name}
@@ -251,14 +258,10 @@ class FindPatientDialog(wx.Dialog):
             self.lc.Select(item, 0)
             self.search.SetFocus()
 
-    def onEdit(self, e: wx.CommandEvent):
+    def onEdit(self, e: wx.CommandEvent | wx.ListEvent):
         pid = self.lc.pid
         assert pid is not None
-        if EditFindPatientDialog(self.mv).ShowModal() == wx.ID_OK:
-            self.clear()
-        item = self.lc.GetFirstSelected()
-        self.lc.Select(item, 0)
-        self.search.SetFocus()
+        EditFindPatientDialog(self).ShowModal()
 
     def onDelete(self, e: wx.CommandEvent):
         pid = self.lc.pid
@@ -266,16 +269,58 @@ class FindPatientDialog(wx.Dialog):
         try:
             self.mv.con.delete(Patient, pid)
             wx.MessageBox("Xóa thành công", "OK")
-            self.mv.state.refresh()
+            self.mv.state.queuelist = self.mv.state.get_queuelist()
+            self.mv.state.todaylist = self.mv.state.get_todaylist()
+            self.mv.state.patient = None
             self.clear()
         except sqlite3.Error as error:
             wx.MessageBox(f"Lỗi không xóa được\n{error}", "Lỗi")
         finally:
             self.search.SetFocus()
 
-    def onClose(self, e):
+    def onClose(self, e: wx.CloseEvent):
         if self.cur is not None:
             self.cur.close()
         e.Skip()
 
-class EditFindPatientDialog:...
+
+class EditFindPatientDialog(EditPatientDialog):
+    def __init__(self, parent: FindPatientDialog):
+        self.parent = parent
+        super().__init__(parent.mv)
+
+    def get_patient(self) -> Patient:
+        pid = self.parent.lc.pid
+        assert pid is not None
+        p = self.mv.con.select(Patient, pid)
+        assert p is not None
+        return p
+
+    def onOkBtn(self, e: wx.CommandEvent):
+        if self.is_valid():
+            name: str = self.name.Value
+            pid = self.parent.lc.pid
+            assert pid is not None
+            p = Patient(
+                id=pid,
+                name=name.strip().upper(),
+                gender=self.gender.GetGender(),
+                birthdate=self.birthdate.GetDate(),
+                address=otf.check_blank(self.address.Value),
+                phone=otf.check_blank(self.phone.Value),
+                past_history=otf.check_blank(self.past_history.Value),
+            )
+            try:
+                self.mv.con.update(p)
+                wx.MessageBox("Cập nhật thành công", "OK")
+                self.parent.clear()
+                page: wx.ListCtrl = self.mv.patient_book.GetCurrentPage()
+                idx: int = page.GetFirstSelected()
+                self.mv.state.queuelist = self.mv.state.get_queuelist()
+                self.mv.state.todaylist = self.mv.state.get_todaylist()
+                page.EnsureVisible(idx)
+                page.Select(idx)
+                self.parent.search.SetFocus()
+                e.Skip()
+            except sqlite3.Error as error:
+                wx.MessageBox(f"Lỗi không cập nhật được\n{error}", "Lỗi")

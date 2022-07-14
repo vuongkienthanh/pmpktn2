@@ -2,19 +2,19 @@ import subprocess
 from path_init import SRC_DIR, CONFIG_PATH
 from db.db_class import *
 from core import mainview
-from core.mainview_books import patient_book
-from core.menu.find_patient_dialog import FindPatientDialog
-from core.menu.patient_dialog import EditPatientDialog, NewPatientDialog
-from core.menu.setup_dialog import SetupDialog
-from core.menu.warehouse_dialog import WarehouseSetupDialog
-from core.menu.sample_prescription_dialog import SampleDialog
-from core.printing.printer import PrintOut, printdata
+from core.dialogs.find_patient_dialog import FindPatientDialog
+from core.dialogs.patient_dialog import EditPatientDialog, NewPatientDialog
+from core.dialogs.setup_dialog import SetupDialog
+from core.dialogs.warehouse_dialog import WarehouseSetupDialog
+from core.dialogs.sample_prescription_dialog import SampleDialog
+from core.printer import PrintOut, printdata
 import wx
 import shutil
 import os.path
 import sys
 import os
 import sqlite3
+
 
 class MyMenuBar(wx.MenuBar):
 
@@ -31,57 +31,63 @@ class MyMenuBar(wx.MenuBar):
 
         editMenu = wx.Menu()
 
-        editMenu.Append(wx.ID_NEW, "Bệnh nhân mới")
-        editMenu.Append(wx.ID_OPEN, "Tìm bệnh nhân cũ")
-        editMenu.AppendSeparator()
-
         menuPatient = wx.Menu()
         menuPatient.Append(wx.ID_NEW, "Bệnh nhân mới")
-        self.menuUpdatePatient = menuPatient.Append(
+        self.menuUpdatePatient: wx.MenuItem = menuPatient.Append(
             wx.ID_EDIT, "Cập nhật thông tin bệnh nhân\tCTRL+U")
-        self.menuDeletePatient = menuPatient.Append(
+        self.menuDeletePatient: wx.MenuItem = menuPatient.Append(
             wx.ID_DELETE, "Xóa bệnh nhân\tCTRL+D")
         self.menuUpdatePatient.Enable(False)
         self.menuDeletePatient.Enable(False)
         editMenu.AppendSubMenu(menuPatient, "Bệnh nhân")
 
         menuVisit = wx.Menu()
-        self.menuNewVisit = menuVisit.Append(wx.ID_ANY, "Lượt khám mới")
-        self.menuInsertVisit = menuVisit.Append(wx.ID_ANY, "Lưu lượt khám")
-        self.menuUpdateVisit = menuVisit.Append(
+        self.menuNewVisit: wx.MenuItem = menuVisit.Append(
+            wx.ID_ANY, "Lượt khám mới")
+        self.menuInsertVisit: wx.MenuItem = menuVisit.Append(
+            wx.ID_ANY, "Lưu lượt khám")
+        self.menuUpdateVisit: wx.MenuItem = menuVisit.Append(
             wx.ID_ANY, "Cập nhật lượt khám")
+        self.menuDeleteVisit: wx.MenuItem = menuVisit.Append(
+            wx.ID_ANY, "Xóa lượt khám cũ")
         self.menuNewVisit.Enable(False)
         self.menuInsertVisit.Enable(False)
         self.menuUpdateVisit.Enable(False)
-        self.menuDeleteVisit = menuVisit.Append(wx.ID_ANY, "Xóa lượt khám cũ")
         self.menuDeleteVisit.Enable(False)
         editMenu.AppendSubMenu(menuVisit, "Lượt khám")
 
         menuQueueList = wx.Menu()
-        self.menuDeleteQueueList = menuQueueList.Append(
+        self.menuDeleteQueueList: wx.MenuItem = menuQueueList.Append(
             wx.ID_ANY, "Xóa lượt chờ khám")
         self.menuDeleteQueueList.Enable(False)
         editMenu.AppendSubMenu(menuQueueList, "Danh sách chờ")
 
         menuDrug = wx.Menu()
-        menuUpdateQuantity = menuDrug.Append(
+        menuUpdateQuantity: wx.MenuItem = menuDrug.Append(
             wx.ID_ANY, "Cập nhật lại số lượng thuốc trong toa theo ngày")
         editMenu.AppendSubMenu(menuDrug, "Thuốc")
 
         editMenu.AppendSeparator()
-        self.menuPrint = editMenu.Append(wx.ID_PRINT, "In")
-        self.menuPreview = editMenu.Append(wx.ID_PREVIEW, "Xem trước bản in")
+        editMenu.Append(wx.ID_OPEN, "Tìm bệnh nhân cũ")
+
+        editMenu.AppendSeparator()
+        self.menuPrint: wx.MenuItem = editMenu.Append(wx.ID_PRINT, "In")
+        self.menuPreview: wx.MenuItem = editMenu.Append(
+            wx.ID_PREVIEW, "Xem trước bản in")
         self.menuPrint.Enable(False)
         self.menuPreview.Enable(False)
 
         storeMenu = wx.Menu()
-        menuWarehouseSetup = storeMenu.Append(wx.ID_ANY, "Kho thuốc")
-        menuSampleSetup = storeMenu.Append(wx.ID_ANY, "Toa mẫu")
+        menuWarehouseSetup: wx.MenuItem = storeMenu.Append(
+            wx.ID_ANY, "Kho thuốc")
+        menuSampleSetup: wx.MenuItem = storeMenu.Append(wx.ID_ANY, "Toa mẫu")
 
         settingMenu = wx.Menu()
-        menuSetup = settingMenu.Append(wx.ID_ANY, "Cài đặt hệ thống")
-        menuJSON = settingMenu.Append(wx.ID_ANY, "Cài đặt qua JSON")
-        menuResetSetting = settingMenu.Append(
+        menuSetup: wx.MenuItem = settingMenu.Append(
+            wx.ID_ANY, "Cài đặt hệ thống")
+        menuJSON: wx.MenuItem = settingMenu.Append(
+            wx.ID_ANY, "Cài đặt qua JSON")
+        menuResetSetting: wx.MenuItem = settingMenu.Append(
             wx.ID_ANY, "Khôi phục cài đặt gốc")
 
         self.Append(homeMenu, "&Home")
@@ -112,7 +118,7 @@ class MyMenuBar(wx.MenuBar):
         self.Bind(wx.EVT_MENU, self.onResetSetting, menuResetSetting)
 
     def onRefresh(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
+        mv: 'mainview.MainView' = self.GetFrame()
         mv.state.refresh()
 
     def onAbout(self, e):
@@ -121,71 +127,78 @@ class MyMenuBar(wx.MenuBar):
             style=wx.OK | wx.CENTRE | wx.ICON_NONE)
 
     def onNewPatient(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
+        mv: 'mainview.MainView' = self.GetFrame()
         NewPatientDialog(mv).ShowModal()
 
     def onFindPatient(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
+        mv: 'mainview.MainView' = self.GetFrame()
         FindPatientDialog(mv).ShowModal()
 
     def onEditPatient(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
-        page : 'patient_book.QueuingPatientList' | 'patient_book.TodayPatientList'
-        page = mv.patient_book.GetPage(mv.patient_book.Selection)
-        idx = page.GetFirstSelected()
+        mv: 'mainview.MainView' = self.GetFrame()
+        page: wx.ListCtrl = mv.patient_book.GetPage(mv.patient_book.Selection)
+        idx: int = page.GetFirstSelected()
+        assert idx >= 0
         assert mv.state.patient is not None
         if EditPatientDialog(mv).ShowModal() == wx.ID_OK:
             page.EnsureVisible(idx)
 
     def onDeletePatient(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
-        p = mv.state.patient
-        assert p is not None
-        try:
-            mv.con.delete(Patient, p.id)
-            wx.MessageBox("Xóa thành công", "OK")
-            mv.state.queuelist = mv.state.get_queuelist()
-            mv.state.todaylist = mv.state.get_todaylist()
-        except sqlite3.Error as error:
-            wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
+        if wx.MessageBox("Xác nhận?", "Xóa bệnh nhân", style=wx.YES_NO|wx.NO_DEFAULT|wx.CENTRE) == wx.YES:
+            mv: 'mainview.MainView' = self.GetFrame()
+            p = mv.state.patient
+            assert p is not None
+            try:
+                mv.con.delete(Patient, p.id)
+                wx.MessageBox("Xóa thành công", "OK")
+                mv.state.queuelist = mv.state.get_queuelist()
+                mv.state.todaylist = mv.state.get_todaylist()
+            except sqlite3.Error as error:
+                wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
 
     def onNewVisit(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
+        mv: 'mainview.MainView' = self.GetFrame()
         idx = mv.visit_list.GetFirstSelected()
         mv.visit_list.Select(idx, 0)
 
     def onInsertVisit(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
+        mv: 'mainview.MainView' = self.GetFrame()
         mv.savebtn.insert_visit()
 
     def onUpdateVisit(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
+        mv: 'mainview.MainView' = self.GetFrame()
         mv.savebtn.update_visit()
 
     def onDeleteVisit(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
-        v = mv.state.visit
-        assert v is not None
-        try:
-            mv.con.delete(Visit, v.id)
-            wx.MessageBox("Xóa thành công", "OK")
-            mv.state.refresh()
-        except sqlite3.Error as error:
-            wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
+        if wx.MessageBox("Xác nhận?", "Xóa lượt khám", style=wx.YES_NO|wx.NO_DEFAULT|wx.CENTRE) == wx.YES:
+            mv: 'mainview.MainView' = self.GetFrame()
+            v = mv.state.visit
+            p = mv.state.patient
+            assert v is not None
+            assert p is not None
+            try:
+                mv.con.delete(Visit, v.id)
+                wx.MessageBox("Xóa thành công", "OK")
+                mv.state.visitlist = mv.con.select_visits_by_patient_id(p.id, limit=5)
+                mv.state.visit = None
+            except sqlite3.Error as error:
+                wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
 
     def onDeleteQueueList(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
-        p = mv.state.patient
-        assert p is not None
-        try:
-            mv.con.delete_queuelist_by_patient_id(p.id)
-            wx.MessageBox("Xóa thành công", "OK")
-            mv.state.refresh()
-        except sqlite3.Error as error:
-            wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
+        if wx.MessageBox("Xác nhận?", "Xóa lượt chờ khám", style=wx.YES_NO|wx.NO_DEFAULT|wx.CENTRE) == wx.YES:
+            mv: 'mainview.MainView' = self.GetFrame()
+            p = mv.state.patient
+            assert p is not None
+            assert mv.patient_book.GetSelection() == 0
+            try:
+                mv.con.delete_queuelist_by_patient_id(p.id)
+                wx.MessageBox("Xóa thành công", "OK")
+                mv.state.refresh()
+            except Exception as error:
+                wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
 
     def onUpdateQuantity(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
+        mv: 'mainview.MainView' = self.GetFrame()
         mv.updatequantitybtn.onClick(None)
 
     def onPrint(self, e):
@@ -193,7 +206,7 @@ class MyMenuBar(wx.MenuBar):
         wx.Printer(wx.PrintDialogData(printdata)).Print(self, printout, True)
 
     def onPreview(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
+        mv: 'mainview.MainView' = self.GetFrame()
         printout = PrintOut(mv, preview=True)
         printdialogdata = wx.PrintDialogData(printdata)
         printpreview = wx.PrintPreview(printout, data=printdialogdata)
@@ -204,15 +217,15 @@ class MyMenuBar(wx.MenuBar):
         frame.Show()
 
     def onWarehouseSetup(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
+        mv: 'mainview.MainView' = self.GetFrame()
         WarehouseSetupDialog(mv).ShowModal()
 
     def onSampleSetup(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
+        mv: 'mainview.MainView' = self.GetFrame()
         SampleDialog(mv).ShowModal()
 
     def onSetup(self, e):
-        mv : 'mainview.MainView' = self.GetFrame()
+        mv: 'mainview.MainView' = self.GetFrame()
         SetupDialog(mv).ShowModal()
 
     def onMenuJSON(self, e):

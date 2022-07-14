@@ -107,7 +107,8 @@ CREATE TABLE IF NOT EXISTS linesampleprescription (
     REFERENCES sampleprescription (id)
       ON DELETE CASCADE
       ON UPDATE CASCADE,
-  CHECK (times > 0 AND dose != '')
+  CHECK (times > 0 AND dose != ''),
+  UNIQUE (drug_id, sample_id)
 );
 
 CREATE TRIGGER IF NOT EXISTS linedrug_insert 

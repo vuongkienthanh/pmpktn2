@@ -1,10 +1,8 @@
 from core.initialize import *
 from core.state import State
-from core.mainview_books.patient_book import PatientBook
-from core.mainview_books.visit_list import VisitList
-from core.mainview_books.order_book import OrderBook
 from core.widgets import *
-from core.menu.menubar import MyMenuBar
+from core.order_book import OrderBook
+from core.menubar import MyMenuBar
 from core.accel import my_accel
 from db import db_func
 import wx
@@ -176,11 +174,11 @@ class MainView(wx.Frame):
     def _bind(self):
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
-    def onClose(self, e):
+    def onClose(self, e:wx.CloseEvent):
         print("close sqlite3 connection")
         self.con.close()
         e.Skip()
 
     def start(self):
-        self.patient_book.GetPage(0).build(self.state.queuelist)
-        self.patient_book.GetPage(1).build(self.state.todaylist)
+        self.patient_book.page0.build(self.state.queuelist)
+        self.patient_book.page1.build(self.state.todaylist)

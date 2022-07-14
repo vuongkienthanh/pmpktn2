@@ -153,8 +153,8 @@ class LineSamplePrescription(BASE):
     id: int
     drug_id: int
     sample_id: int
-    dose: str
     times: int
+    dose: str
 
 
 T = TypeVar('T', bound='BASE')

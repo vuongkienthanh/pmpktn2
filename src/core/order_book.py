@@ -1,21 +1,261 @@
-from db.db_class import *
-import core.other_func as otf
-from core.mainview_books import order_book
-from core.initialize import k_number, k_special, k_tab
 from path_init import plus_bm, minus_bm
+from core.initialize import popup_size, k_number, k_special, k_tab
+from db.db_class import Warehouse
+from core import mainview
+import core.other_func as otf
 
 import wx
 import wx.adv
 from typing import Any
-from collections.abc import Mapping
 import sqlite3
+import platform
+
+
+class OrderBook(wx.Notebook):
+
+    def __init__(self, parent: 'mainview.MainView'):
+        super().__init__(parent)
+        self.mv = parent
+        self.page0 = PrescriptionPage(self)
+        self.AddPage(page=self.page0,
+                     text='Toa thuốc', select=True)
+
+
+class PrescriptionPage(wx.Panel):
+
+    def __init__(self, parent: OrderBook):
+        super().__init__(parent)
+        self.parent = parent
+        self._createWidgets()
+        self._setSizer()
+
+    def _createWidgets(self):
+        if platform.system() in ['Linux', 'Darwin']:
+            self.drug_picker = LinuxDrugPicker(self)
+        self.times = Times(self)
+        self.dose = Dose(self)
+        self.quantity = Quantity(self)
+        self.usage_unit = wx.StaticText(
+            self,
+            label='{Đơn vị}')
+        self.sale_unit = wx.StaticText(
+            self,
+            label='{Đơn vị}')
+        self.note = Note(self)
+        self.drug_list = DrugList(self)
+        self.save_drug_btn = SaveDrugButton(self)
+        self.del_drug_btn = DelDrugButton(self)
+        self.reuse_druglist_btn = ReuseDrugListButton(self)
+
+    def _setSizer(self):
+        def static(label):
+            return (wx.StaticText(self, label=label), 0, wx.ALIGN_CENTER | wx.RIGHT, 2)
+
+        def widget(w, p=1):
+            return (w, p, wx.RIGHT, 2)
+
+        drug_row = wx.BoxSizer(wx.HORIZONTAL)
+        drug_row.AddMany([
+            static('Thuốc'),
+            widget(self.drug_picker, 4),
+            widget(self.times),
+            static("lần, lần"),
+            widget(self.dose),
+            (self.usage_unit, 0, wx.ALIGN_CENTER | wx.RIGHT, 2),
+            static(u"\u21D2   Tổng cộng:"),
+            widget(self.quantity),
+            (self.sale_unit, 0, wx.ALIGN_CENTER | wx.RIGHT, 2),
+            widget(self.save_drug_btn, 0),
+            widget(self.del_drug_btn, 0)
+        ])
+
+        usage_row = wx.BoxSizer(wx.HORIZONTAL)
+        usage_row.AddMany([
+            static('Cách dùng:'),
+            widget(self.note)
+        ])
+
+        btn_row = wx.BoxSizer(wx.HORIZONTAL)
+        btn_row.AddMany([
+            widget(self.reuse_druglist_btn, 0)
+        ])
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(drug_row, 0, wx.EXPAND)
+        sizer.Add(usage_row, 0, wx.EXPAND)
+        sizer.Add(self.drug_list, 1, wx.EXPAND | wx.TOP, 3)
+        sizer.Add(btn_row, 0, wx.EXPAND | wx.TOP, 3)
+        self.SetSizer(sizer)
+
+    def check_wh_do_ti_filled(self):
+        return all([
+            self.parent.mv.state.warehouse is not None,
+            self.dose.Value.strip() != '',
+            self.times.Value.strip() != '',
+        ])
+
+    def check_all_filled(self):
+        return all([
+            self.Parent.Parent.state.warehouse is not None,
+            self.dose.Value.strip() != '',
+            self.times.Value.strip() != '',
+            self.quantity.Value.strip() != '',
+        ])
+
+
+class DrugPopup(wx.ComboPopup):
+
+    def __init__(self):
+        super().__init__()
+        self._list = []
+
+    def Create(self, parent):
+        self.lc = wx.ListCtrl(
+            parent,
+            style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.SIMPLE_BORDER
+        )
+        self.lc.AppendColumn('Thuốc'.ljust(30, ' '), width=-2)
+        self.lc.AppendColumn('Thành phần'.ljust(30, ' '), width=-2)
+        self.lc.AppendColumn('Số lượng')
+        self.lc.AppendColumn('Đơn vị')
+        self.lc.AppendColumn('Đơn giá')
+        self.lc.AppendColumn('Cách dùng')
+        self.lc.AppendColumn('Hạn sử dụng', width=-2)
+        self.lc.Bind(wx.EVT_MOTION, self.OnMotion)
+        self.lc.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
+        self.lc.Bind(wx.EVT_CHAR, self.onChar)
+        return True
+
+    def GetControl(self):
+        return self.lc
+
+    def Init(self):
+        self.curitem = -1
+
+    def SetStringValue(self, val):
+        self.Init()
+        if self.lc.ItemCount > 0:
+            self.curitem += 1
+            self.lc.Select(self.curitem)
+
+    def GetStringValue(self):
+        return ""
+
+    def GetAdjustedSize(self, minWidth, prefHeight, maxHeight):
+        return super().GetAdjustedSize(*popup_size)
+
+    def fetch_list(self, s):
+        s = s.casefold()
+        self._list = list(filter(
+            lambda item: (s in item.name.casefold()) or (
+                s in item.element.casefold()),
+            self.GetComboCtrl().Parent.Parent.Parent.state.warehouselist
+        ))
+
+    def build(self):
+        for index, item in enumerate(self._list):
+            self.append_ui(item)
+            self.check_min_quantity(item, index)
+
+    def append_ui(self, item: Warehouse):
+        if item.expire_date is None:
+            expire_date = ''
+        else:
+            expire_date = item.expire_date.strftime("%d/%m/%Y")
+        self.lc.Append([
+            item.name,
+            item.element,
+            str(item.quantity),
+            item.usage_unit,
+            int(item.sale_price),
+            item.usage,
+            expire_date
+        ])
+
+    def check_min_quantity(self, item, index):
+        if item.quantity <= self.ComboCtrl.Parent.Parent.Parent.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"]:
+            self.lc.SetItemTextColour(index, wx.Colour(252, 3, 57))
+
+    def OnPopup(self):
+        self.lc.DeleteAllItems()
+        self.fetch_list(self.GetComboCtrl().GetValue())
+        self.build()
+
+    def OnMotion(self, e):
+        index, flags = self.lc.HitTest(e.GetPosition())
+        if index >= 0:
+            self.lc.Select(index)
+            self.curitem = index
+
+    def OnLeftDown(self, e):
+        self.Dismiss()
+        self.GetComboCtrl(
+        ).Parent.Parent.Parent.state.warehouse = self._list[self.curitem]
+
+    def onChar(self, e):
+        c = e.GetKeyCode()
+        if c == wx.WXK_DOWN:
+            self.KeyDown()
+        elif c == wx.WXK_UP:
+            self.KeyUp()
+        elif c == wx.WXK_ESCAPE:
+            self.KeyESC()
+        elif c == wx.WXK_RETURN:
+            self.KeyReturn()
+
+    def KeyDown(self):
+        if self.lc.ItemCount > 0:
+            if self.curitem < (self.lc.ItemCount - 1):
+                self.curitem += 1
+            self.lc.Select(self.curitem)
+            self.lc.EnsureVisible(self.curitem)
+
+    def KeyUp(self):
+        if self.lc.ItemCount > 0:
+            if self.curitem > 0:
+                self.curitem -= 1
+            self.lc.Select(self.curitem)
+            self.lc.EnsureVisible(self.curitem)
+
+    def KeyReturn(self):
+        if self.lc.ItemCount > 0:
+            self.OnLeftDown(None)
+
+    def KeyESC(self):
+        self.Dismiss()
+        self.ComboCtrl.Parent.Parent.Parent.state.warehouse = None
+        self.ComboCtrl.Parent.Parent.Parent.state.linedrug = None
+
+
+class LinuxDrugPicker(wx.ComboCtrl):
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.SetPopupControl(DrugPopup())
+        self.Bind(wx.EVT_CHAR, self.onChar)
+        self.Bind(wx.EVT_TEXT, self.onText)
+        self.SetHint("Enter để search thuốc")
+
+    def onChar(self, e):
+        if e.GetKeyCode() == wx.WXK_RETURN:
+            self.Popup()
+        else:
+            e.Skip()
+
+    def onText(self, e):
+        if self.GetValue() == '':
+            self.Parent.Parent.Parent.state.warehouse = None
+
+        else:
+            e.Skip()
+
 
 # Generic
 
 
 class DrugList(wx.ListCtrl):
 
-    def __init__(self, parent: 'order_book.PrescriptionPage'):
+    def __init__(self, parent: PrescriptionPage):
         super().__init__(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         self.SetBackgroundColour(wx.Colour(220, 220, 220))
         self.parent = parent
@@ -33,11 +273,9 @@ class DrugList(wx.ListCtrl):
     def append(self, item: dict[str, Any] | sqlite3.Row):
         def append_list(item: dict[str, Any] | sqlite3.Row):
             self._list.append({
-                'drug_id': item['drug_id'],
-                'times': item['times'],
-                'dose': item['dose'],
-                'quantity': item['quantity'],
-                'note': item['note']
+                f: item[f] for f in
+                ('drug_id', 'times', 'dose', 'quantity', 'name',
+                 'note', 'usage', 'usage_unit', 'sale_unit')
             })
 
         def append_ui(item: dict[str, Any] | sqlite3.Row):
@@ -80,12 +318,12 @@ class DrugList(wx.ListCtrl):
         update_list(index, item)
         update_ui(index, item)
 
-    def rebuild(self, lld: list[sqlite3.Row]):
+    def rebuild(self, lld: list[sqlite3.Row] | list[dict[str, Any]]):
         self.DeleteAllItems()
         self._list.clear()
         self.build(lld)
 
-    def build(self, lld: list[sqlite3.Row]):
+    def build(self, lld: list[sqlite3.Row] | list[dict[str, Any]]):
         for item in lld:
             self.append(item)
 
@@ -136,7 +374,7 @@ class DrugList(wx.ListCtrl):
 
 
 class Times(wx.TextCtrl):
-    def __init__(self, parent: 'order_book.PrescriptionPage'):
+    def __init__(self, parent: PrescriptionPage):
         super().__init__(parent)
         self.parent = parent
         self.SetHint('lần')
@@ -178,7 +416,7 @@ class Quantity(wx.TextCtrl):
         self.Bind(wx.EVT_CHAR, self.onChar)
 
     def onChar(self, e: wx.KeyEvent):
-        if e.KeyCode in k_number+k_tab+k_special:
+        if e.KeyCode in k_number + k_tab + k_special:
             e.Skip()
 
     def set(self):
@@ -196,7 +434,7 @@ class Quantity(wx.TextCtrl):
 
 
 class Note(wx.TextCtrl):
-    def __init__(self, parent: 'order_book.PrescriptionPage'):
+    def __init__(self, parent: PrescriptionPage):
         super().__init__(parent)
         self.parent = parent
         self.Bind(wx.EVT_CHAR, self.onChar)
@@ -250,7 +488,7 @@ class Note(wx.TextCtrl):
 
 
 class SaveDrugButton(wx.BitmapButton):
-    def __init__(self, parent: "order_book.PrescriptionPage"):
+    def __init__(self, parent: PrescriptionPage):
         super().__init__(parent,
                          bitmap=wx.Bitmap(plus_bm))
         self.parent = parent
@@ -270,24 +508,25 @@ class DelDrugButton(wx.BitmapButton):
         self.parent = parent
         self.Bind(wx.EVT_BUTTON, self.onClick)
 
-    def onClick(self, e:wx.CommandEvent):
+    def onClick(self, e: wx.CommandEvent):
         self.parent.drug_list.remove()
         self.parent.parent.mv.state.warehouse = None
         self.parent.parent.mv.price.SetPrice()
 
 
 class ReuseDrugListButton(wx.Button):
-    def __init__(self, parent):
+    def __init__(self, parent: PrescriptionPage):
         super().__init__(parent,
                          label='Lượt khám mới với toa cũ này')
+        self.parent = parent
+        self.mv = parent.parent.mv
         self.Disable()
         self.Bind(wx.EVT_BUTTON, self.onClick)
 
     def onClick(self, e):
-        mv = self.Parent.Parent.Parent
-        lld = self.Parent.drug_list._list.copy()
-        weight = mv.weight.GetValue()
-        mv.state.visit = None
-        mv.weight.SetValue(weight)
-        self.Parent.drug_list.rebuild(lld)
-        self.Parent.Parent.Parent.updatequantitybtn.onClick(None)
+        lld = self.parent.drug_list._list.copy()
+        weight = self.mv.weight.GetValue()
+        self.mv.state.visit = None
+        self.mv.weight.SetValue(weight)
+        self.parent.drug_list.rebuild(lld)
+        self.mv.updatequantitybtn.onClick(None)

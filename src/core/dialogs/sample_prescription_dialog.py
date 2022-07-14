@@ -3,6 +3,7 @@ from db.db_class import *
 import core.other_func as otf
 import wx
 import sqlite3
+from typing import Any
 
 
 class SampleDialog(wx.Dialog):
@@ -10,23 +11,20 @@ class SampleDialog(wx.Dialog):
         super().__init__(parent=parent, title="Toa mẫu",
                          style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
         self.mv = parent
-        self.samplelist = SampleList(self)
+
+        self.samplelist = SampleList(self, name="Danh sách toa mẫu")
         self.addsamplebtn = AddSampleButton(self)
         self.minussamplebtn = MinusSampleButton(self)
-        self.itemlist = ItemList(self)
-        self.picker = Picker(self)
-        self.times = Times(self)
-        self.dose = Dose(self)
+        self.itemlist = ItemList(self, name="Nội dung")
+        self.picker = Picker(self, name="Thuốc")
+        self.times = Times(self, name="Số cữ")
+        self.dose = Dose(self, name="Liều")
         self.adddrugbtn = AddDrugButton(self)
         self.minusdrugbtn = MinusDrugButton(self)
-        self.set_sizer()
 
-    def set_sizer(self) -> None:
-        def static(s, center=False):
-            return (wx.StaticText(self, label=s), 0, wx.ALL | wx.ALIGN_CENTER if center else wx.ALL, 5)
-
-        def widget(w, p=1):
-            return (w, p, wx.EXPAND | wx.ALL, 5)
+        def widget(w, p=0):
+            s: str = w.Name
+            return (wx.StaticText(self, label=s), 0, wx.ALIGN_CENTER | wx.ALL, 5), (w, p, wx.EXPAND | wx.ALL, 5)
 
         btn_row1 = wx.BoxSizer(wx.HORIZONTAL)
         btn_row1.AddMany([
@@ -36,12 +34,9 @@ class SampleDialog(wx.Dialog):
         ])
         item_row = wx.BoxSizer(wx.HORIZONTAL)
         item_row.AddMany([
-            static("Thuốc", True),
-            (self.picker, 1, wx.ALL, 5),
-            static("Số cữ", True),
-            (self.times, 0, wx.ALL, 5),
-            static("Liều", True),
-            (self.dose, 0, wx.ALL, 5),
+            *widget(self.picker, 1),
+            *widget(self.times),
+            *widget(self.dose),
         ])
         btn_row2 = wx.BoxSizer(wx.HORIZONTAL)
         btn_row2.AddMany([
@@ -52,11 +47,9 @@ class SampleDialog(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddMany([
-            static("Danh sách toa mẫu"),
-            widget(self.samplelist),
+            *widget(self.samplelist, 1),
             (btn_row1, 0, wx.EXPAND),
-            static("Nội dung"),
-            widget(self.itemlist),
+            *widget(self.itemlist,1),
             (item_row, 0, wx.EXPAND),
             (btn_row2, 0, wx.EXPAND),
             (self.CreateStdDialogButtonSizer(wx.OK), 0, wx.EXPAND | wx.ALL, 5)
@@ -65,18 +58,15 @@ class SampleDialog(wx.Dialog):
 
 
 class SampleList(wx.ListCtrl):
-    def __init__(self, parent: SampleDialog):
-        super().__init__(parent, style=wx.LC_SINGLE_SEL | wx.LC_REPORT | wx.LC_NO_HEADER)
+    def __init__(self, parent: SampleDialog, name:str):
+        super().__init__(parent, style=wx.LC_SINGLE_SEL | wx.LC_REPORT | wx.LC_NO_HEADER, name=name)
         self.parent = parent
         self.AppendColumn("name".ljust(100, ' '), width=-2)
-        self.build()
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
-        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
-
-    def build(self) -> None:
         self.DeleteAllItems()
         for sp in self.parent.mv.state.sampleprescriptionlist:
             self.append(sp)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
 
     def append(self, sp: SamplePrescription) -> None:
         self.Append((sp.name,))
@@ -90,9 +80,8 @@ class SampleList(wx.ListCtrl):
         sp = self.parent.mv.state.sampleprescriptionlist[idx]
         self.parent.itemlist.build(sp.id)
 
-    def onDeselect(self, e):
+    def onDeselect(self, e:wx.ListEvent):
         self.parent.minussamplebtn.Disable()
-        self.parent.itemlist.DeleteAllItems()
         self.parent.picker.Disable()
         self.parent.dose.Disable()
         self.parent.times.Disable()
@@ -109,17 +98,14 @@ class AddSampleButton(wx.Button):
         s = wx.GetTextFromUser("Tên toa mẫu mới", "Thêm toa mẫu")
         if s != '':
             sp = {'name': s}
-            res = self.parent.mv.con.insert(SamplePrescription, sp)
-            if res is not None:
-                lastrowid, _ = res
-                sp = SamplePrescription(
-                    id=lastrowid,
-                    name=s
-                )
-                self.parent.mv.state.sampleprescriptionlist.append(sp)
-                self.parent.samplelist.append(sp)
-            else:
-                wx.MessageBox("Lỗi không thêm được toa mẫu mới", "Lỗi")
+            lastrowid = self.parent.mv.con.insert(SamplePrescription, sp)
+            assert lastrowid is not None
+            sp = SamplePrescription(
+                id=lastrowid,
+                name=s
+            )
+            self.parent.mv.state.sampleprescriptionlist.append(sp)
+            self.parent.samplelist.append(sp)
 
 
 class MinusSampleButton(wx.Button):
@@ -130,30 +116,35 @@ class MinusSampleButton(wx.Button):
         self.Bind(wx.EVT_BUTTON, self.onClick)
 
     def onClick(self, e) -> None:
-        idx = self.parent.samplelist.GetFirstSelected()
-        if idx >= 0:
-            sp = self.parent.mv.state.sampleprescriptionlist[idx]
+        idx:int = self.parent.samplelist.GetFirstSelected()
+        assert idx >= 0
+        sp = self.parent.mv.state.sampleprescriptionlist[idx]
+        try:
             rowcount = self.parent.mv.con.delete(SamplePrescription, sp.id)
-            if rowcount is not None:
-                self.parent.mv.state.sampleprescriptionlist.pop(idx)
-                self.parent.samplelist.DeleteItem(idx)
-                self.Disable()
-            else:
-                wx.MessageBox("Lỗi không xóa được toa mẫu", "Lỗi")
+            assert rowcount is not None
+            self.parent.mv.state.sampleprescriptionlist.pop(idx)
+            self.parent.samplelist.DeleteItem(idx)
+            self.Disable()
+        except Exception as error:
+            wx.MessageBox(f"Lỗi không xóa được toa mẫu\n{error}", "Lỗi")
 
 
 class Picker(wx.Choice):
-    def __init__(self, parent: SampleDialog):
-        super().__init__(parent, choices=[
-            f"{wh.name}({wh.element})" for wh in parent.mv.state.warehouselist
-        ])
+    def __init__(self, parent: SampleDialog, name: str):
+        super().__init__(
+            parent,
+            choices=[
+                f"{wh.name}({wh.element})"
+                for wh in parent.mv.state.warehouselist
+            ],
+            name=name)
         self.Disable()
         self.Bind(wx.EVT_CHOICE, lambda e: parent.adddrugbtn.check_state())
 
 
 class Dose(wx.TextCtrl):
-    def __init__(self, parent):
-        super().__init__(parent)
+    def __init__(self, parent: SampleDialog, name:str):
+        super().__init__(parent, name=name)
         self.SetHint('liều')
         self.Bind(
             wx.EVT_CHAR,
@@ -164,8 +155,8 @@ class Dose(wx.TextCtrl):
 
 
 class Times(wx.TextCtrl):
-    def __init__(self, parent):
-        super().__init__(parent,)
+    def __init__(self, parent: SampleDialog, name:str):
+        super().__init__(parent, name=name)
         self.SetHint('lần')
         self.Bind(wx.EVT_CHAR, otf.only_nums)
         self.Disable()
@@ -187,20 +178,38 @@ class AddDrugButton(wx.Button):
         else:
             self.Disable()
 
-    def onClick(self, e):
+    def onClick(self, e:wx.CommandEvent):
         idx: int = self.parent.picker.GetCurrentSelection()
         wh = self.parent.mv.state.warehouselist[idx]
         idx: int = self.parent.samplelist.GetFirstSelected()
         sp = self.parent.mv.state.sampleprescriptionlist[idx]
 
+        times_str :str=  self.parent.times.GetValue()
+        times = int(times_str.strip())
+        dose_str :str = self.parent.dose.GetValue()
+        dose = dose_str.strip()
         lsp = {
             'drug_id': wh.id,
             'sample_id': sp.id,
-            'dose': self.parent.dose.GetValue().strip(),
-            'times': int(self.parent.times.GetValue().strip()),
+            'times': times,
+            'dose': dose,
         }
-
-        self.parent.mv.con.insert(LineSamplePrescription, lsp)
+        try:
+            lastrowid = self.parent.mv.con.insert(LineSamplePrescription, lsp)
+            assert lastrowid is not None
+            self.parent.itemlist.append({
+                'id': lastrowid,
+                'name': wh.name,
+                'element': wh.element,
+                'times': times,
+                'dose': dose,
+            })
+            self.parent.picker.SetSelection(wx.NOT_FOUND)
+            self.parent.times.ChangeValue('')
+            self.parent.dose.ChangeValue('')
+            self.Disable()
+        except Exception as error:
+            wx.MessageBox(f"Không thêm thuốc vào toa mẫu được\n{error}", "Lỗi")
 
 
 class MinusDrugButton(wx.Button):
@@ -210,17 +219,16 @@ class MinusDrugButton(wx.Button):
         self.Disable()
         self.Bind(wx.EVT_BUTTON, self.onClick)
 
-    def onClick(self, e):
-        idx = self.parent.itemlist.GetFirstSelected()
-        self.parent.itemlist.DeleteItem(idx)
-        llsp_id = self.parent.itemlist._list_id[idx]
-        self.parent.mv.con.delete(LineSamplePrescription, llsp_id)
+    def onClick(self, e:wx.CommandEvent):
+        idx :int = self.parent.itemlist.GetFirstSelected()
+        lsp_id = self.parent.itemlist.pop(idx)
+        self.parent.mv.con.delete(LineSamplePrescription, lsp_id)
         self.Disable()
 
 
 class ItemList(wx.ListCtrl):
-    def __init__(self, parent: SampleDialog):
-        super().__init__(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+    def __init__(self, parent: SampleDialog, name:str):
+        super().__init__(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL, name=name)
         self.parent = parent
         self._list_id: list[int] = []
         for s in [
@@ -245,12 +253,19 @@ class ItemList(wx.ListCtrl):
         """).fetchall():
             self.append(lsp)
 
-    def append(self, lsp: sqlite3.Row):
+    def append(self, lsp: sqlite3.Row| dict[str,Any]):
         self.Append((lsp['name'], lsp['element'], lsp['times'], lsp['dose']))
         self._list_id.append(lsp['id'])
 
-    def onSelect(self, e):
+    def pop(self, idx:int) ->int:
+        assert idx >=0
+        self.DeleteItem(idx)
+        lsp_id = self.parent.itemlist._list_id.pop(idx)
+        return lsp_id
+        
+
+    def onSelect(self, e:wx.ListEvent):
         self.parent.minusdrugbtn.Enable()
 
-    def onDeselect(self, e):
+    def onDeselect(self, e:wx.ListEvent):
         self.parent.minusdrugbtn.Disable()

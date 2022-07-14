@@ -24,8 +24,8 @@ class SetupDialog(wx.Dialog):
         for item in self.mv.config["thuoc_ban_mot_don_vi"]:
             lc.Append((item,))
         
-        self.cancelbtn = wx.Button(self, id=wx.ID_CANCEL)
-        self.okbtn = wx.Button(self, id=wx.ID_OK)
+        cancelbtn = wx.Button(self, id=wx.ID_CANCEL)
+        okbtn = wx.Button(self, id=wx.ID_OK)
 
 
         def widget(w:wx.Window):
@@ -41,12 +41,11 @@ class SetupDialog(wx.Dialog):
             *widget(self.alert),
             *widget(self.unit)
         ])
-
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_sizer.AddMany([
             (0,0,1),
-            (self.cancelbtn, 0, wx.ALL,5),
-            (self.okbtn, 0, wx.ALL, 5),
+            (cancelbtn, 0, wx.ALL,5),
+            (okbtn, 0, wx.ALL, 5),
         ])
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddMany([
@@ -55,24 +54,26 @@ class SetupDialog(wx.Dialog):
         ])
         self.SetSizerAndFit(sizer)
 
-        okbtn :wx.Button = btn_sizer.Children[3].Window
-        okbtn.Bind(wx.EVT_BUTTON, self.onOk)
+        okbtn.Bind(wx.EVT_BUTTON, self.onOkBtn)
 
-    def onOk(self, e):
+    def onOkBtn(self, e:wx.CommandEvent):
         try:
-            self.Parent.config['ten_phong_kham'] = self.clinic_name.Value
-            self.Parent.config['cong_kham_benh'] = int(self.price.Value)
-            self.Parent.config['so_ngay_toa_ve_mac_dinh'] = self.days.GetValue()
-            self.Parent.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"] = self.alert.GetValue()
-            self.Parent.config["thuoc_ban_mot_don_vi"] = [
-                self.unit.GetListCtrl().GetItemText(idx).strip()
-                for idx in range(self.unit.GetListCtrl().ItemCount)
-                if self.unit.GetListCtrl().GetItemText(idx).strip() != ''
+            lc : wx.ListCtrl = self.unit.GetListCtrl()
+
+            self.mv.config['ten_phong_kham'] = self.clinic_name.Value
+            self.mv.config['ky_ten_bac_si'] = self.doctor_name.Value
+            self.mv.config['cong_kham_benh'] = int(self.price.Value)
+            self.mv.config['so_ngay_toa_ve_mac_dinh'] = self.days.GetValue()
+            self.mv.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"] = self.alert.GetValue()
+            self.mv.config["thuoc_ban_mot_don_vi"] = [
+                lc.GetItemText(idx).strip()
+                for idx in range(lc.ItemCount)
+                if lc.GetItemText(idx).strip() != ''
             ]
             with open(os.path.join(APP_DIR, "config.json"), mode='w', encoding="utf-8") as f:
-                json.dump(self.Parent.config, f, ensure_ascii=False, indent=4)
+                json.dump(self.mv.config, f, ensure_ascii=False, indent=4)
             wx.MessageBox("Đã lưu cài đặt", "Cài đặt")
-            self.Parent.price.set_price()
+            self.mv.price.SetPrice()
             e.Skip()
         except Exception as error:
             wx.MessageBox(f"Lỗi không lưu được\n{error}", "Lỗi")

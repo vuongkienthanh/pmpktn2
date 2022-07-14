@@ -125,7 +125,7 @@ class NewPatientDialog(BasePatientDialog):
         if self.is_valid():
             try:
                 name: str = self.name.Value
-                res = self.mv.con.insert(Patient, {
+                lastrowid = self.mv.con.insert(Patient, {
                     'name': name.strip().upper(),
                     'gender': self.gender.GetGender(),
                     'birthdate': self.birthdate.GetDate(),
@@ -133,8 +133,7 @@ class NewPatientDialog(BasePatientDialog):
                     'phone': otf.check_blank(self.phone.Value),
                     'past_history': otf.check_blank(self.past_history.Value)
                 })
-                assert res is not None
-                lastrowid, _ = res
+                assert lastrowid is not None
                 wx.MessageBox("Đã thêm bệnh nhân mới thành công",
                               "Bệnh nhân mới")
                 try:
@@ -164,11 +163,14 @@ class EditPatientDialog(BasePatientDialog):
     def __init__(self, parent: 'mainview.MainView'):
         super().__init__(parent, title="Cập nhật thông tin bệnh nhân")
         self.mv = parent
-        self.build()
-
-    def build(self):
+        self.build(self.get_patient())
+    
+    def get_patient(self)->Patient:
         p = self.mv.state.patient
         assert p is not None
+        return p
+
+    def build(self, p:Patient):
         self.name.ChangeValue(p.name)
         self.gender.SetGender(p.gender)
         self.birthdate.SetDate(p.birthdate)
@@ -189,7 +191,6 @@ class EditPatientDialog(BasePatientDialog):
             p.address = otf.check_blank(self.address.Value)
             p.phone = otf.check_blank(self.phone.Value)
             p.past_history = otf.check_blank(self.past_history.Value)
-
             try:
                 self.mv.con.update(p)
                 wx.MessageBox("Cập nhật thành công", "OK")
