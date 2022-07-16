@@ -199,7 +199,7 @@ class MyMenuBar(wx.MenuBar):
 
     def onUpdateQuantity(self, e):
         mv: 'mainview.MainView' = self.GetFrame()
-        mv.updatequantitybtn.onClick(None)
+        mv.updatequantitybtn.update_quantity()
 
     def onPrint(self, e):
         printout = PrintOut(self.Parent)

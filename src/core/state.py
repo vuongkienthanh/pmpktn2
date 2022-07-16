@@ -61,11 +61,15 @@ class State():
         self.mv.savebtn.Enable()
         self.mv.updatequantitybtn.Enable()
         self.mv.weight.Enable()
-        self.mv.get_weight_btn.Enable()
         self.mv.days.Enable()
         self.mv.recheck.Enable()
         self.mv.norecheck.Enable()
+        self.mv.order_book.page0.use_sample_prescription_btn.Enable()
         self.visitlist = self.mv.con.select_visits_by_patient_id(p.id, limit=5)
+        if len(self.visitlist) >0:
+            self.mv.get_weight_btn.Enable()
+        else:
+            self.mv.get_weight_btn.Disable()
 
         idx :int = self.mv.patient_book.Selection
         page: wx.ListCtrl = self.mv.patient_book.GetPage(idx)
@@ -98,6 +102,7 @@ class State():
         self.mv.days.Disable()
         self.mv.recheck.Disable()
         self.mv.norecheck.Disable()
+        self.mv.order_book.page0.use_sample_prescription_btn.Disable()
         self.visit = None
         self.visitlist = []
 
@@ -131,13 +136,14 @@ class State():
         self.mv.follow.SetFollow(v.follow)
         self.linedruglist = self.mv.con.select_linedrugs_by_visit_id(v.id)
         self.mv.savebtn.SetLabel("Cập nhật")
-        self.mv.price.SetPrice()
+        self.mv.price.FetchPrice()
         if self.mv.patient_book.GetSelection() == 0:
             self.mv.newvisitbtn.Enable()
-        self.mv.order_book.GetPage(0).reuse_druglist_btn.Enable()
+        self.mv.order_book.page0.reuse_druglist_btn.Enable()
         self.mv.GetMenuBar().menuNewVisit.Enable()
-        if self.patient is not None:
+        if self.patient:
             self.mv.GetMenuBar().menuInsertVisit.Enable(False)
+            self.mv.order_book.page0.use_sample_prescription_btn.Disable()
         self.mv.GetMenuBar().menuUpdateVisit.Enable()
         self.mv.GetMenuBar().menuDeleteVisit.Enable()
         self.mv.visit_list.SetFocus()
@@ -153,9 +159,10 @@ class State():
         self.mv.price.clear()
         self.mv.newvisitbtn.Disable()
         self.mv.savebtn.SetLabel("Lưu")
-        self.mv.order_book.GetPage(0).reuse_druglist_btn.Disable()
+        self.mv.order_book.page0.reuse_druglist_btn.Disable()
         self.mv.GetMenuBar().menuNewVisit.Enable(False)
-        if self.patient is not None:
+        if self.patient:
+            self.mv.order_book.page0.use_sample_prescription_btn.Enable()
             self.mv.GetMenuBar().menuInsertVisit.Enable()
         self.mv.GetMenuBar().menuUpdateVisit.Enable(False)
         self.mv.GetMenuBar().menuDeleteVisit.Enable(False)

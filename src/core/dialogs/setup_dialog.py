@@ -73,7 +73,7 @@ class SetupDialog(wx.Dialog):
             with open(os.path.join(APP_DIR, "config.json"), mode='w', encoding="utf-8") as f:
                 json.dump(self.mv.config, f, ensure_ascii=False, indent=4)
             wx.MessageBox("Đã lưu cài đặt", "Cài đặt")
-            self.mv.price.SetPrice()
+            self.mv.price.FetchPrice()
             e.Skip()
         except Exception as error:
             wx.MessageBox(f"Lỗi không lưu được\n{error}", "Lỗi")

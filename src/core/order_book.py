@@ -3,6 +3,7 @@ from core.initialize import popup_size, k_number, k_special, k_tab
 from db.db_class import Warehouse
 from core import mainview
 import core.other_func as otf
+from core.generic import *
 
 import wx
 import wx.adv
@@ -12,6 +13,7 @@ import platform
 
 
 class OrderBook(wx.Notebook):
+    """Container for PrescriptionPage"""
 
     def __init__(self, parent: 'mainview.MainView'):
         super().__init__(parent)
@@ -26,10 +28,7 @@ class PrescriptionPage(wx.Panel):
     def __init__(self, parent: OrderBook):
         super().__init__(parent)
         self.parent = parent
-        self._createWidgets()
-        self._setSizer()
 
-    def _createWidgets(self):
         if platform.system() in ['Linux', 'Darwin']:
             self.drug_picker = LinuxDrugPicker(self)
         self.times = Times(self)
@@ -46,8 +45,8 @@ class PrescriptionPage(wx.Panel):
         self.save_drug_btn = SaveDrugButton(self)
         self.del_drug_btn = DelDrugButton(self)
         self.reuse_druglist_btn = ReuseDrugListButton(self)
+        self.use_sample_prescription_btn = UseSamplePrescriptionBtn(self)
 
-    def _setSizer(self):
         def static(label):
             return (wx.StaticText(self, label=label), 0, wx.ALIGN_CENTER | wx.RIGHT, 2)
 
@@ -68,23 +67,23 @@ class PrescriptionPage(wx.Panel):
             widget(self.save_drug_btn, 0),
             widget(self.del_drug_btn, 0)
         ])
-
         usage_row = wx.BoxSizer(wx.HORIZONTAL)
         usage_row.AddMany([
             static('Cách dùng:'),
             widget(self.note)
         ])
-
         btn_row = wx.BoxSizer(wx.HORIZONTAL)
         btn_row.AddMany([
-            widget(self.reuse_druglist_btn, 0)
+            widget(self.reuse_druglist_btn, 0),
+            widget(self.use_sample_prescription_btn, 0),
         ])
-
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(drug_row, 0, wx.EXPAND)
-        sizer.Add(usage_row, 0, wx.EXPAND)
-        sizer.Add(self.drug_list, 1, wx.EXPAND | wx.TOP, 3)
-        sizer.Add(btn_row, 0, wx.EXPAND | wx.TOP, 3)
+        sizer.AddMany([
+            (drug_row, 0, wx.EXPAND),
+            (usage_row, 0, wx.EXPAND),
+            (self.drug_list, 1, wx.EXPAND | wx.TOP, 3),
+            (btn_row, 0, wx.EXPAND | wx.TOP, 3),
+        ])
         self.SetSizer(sizer)
 
     def check_wh_do_ti_filled(self):
@@ -103,7 +102,7 @@ class PrescriptionPage(wx.Panel):
         ])
 
 
-class DrugPopup(wx.ComboPopup):
+class LinuxDrugPopup(wx.ComboPopup):
 
     def __init__(self):
         super().__init__()
@@ -231,7 +230,7 @@ class LinuxDrugPicker(wx.ComboCtrl):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.SetPopupControl(DrugPopup())
+        self.SetPopupControl(LinuxDrugPopup())
         self.Bind(wx.EVT_CHAR, self.onChar)
         self.Bind(wx.EVT_TEXT, self.onText)
         self.SetHint("Enter để search thuốc")
@@ -248,9 +247,6 @@ class LinuxDrugPicker(wx.ComboCtrl):
 
         else:
             e.Skip()
-
-
-# Generic
 
 
 class DrugList(wx.ListCtrl):
@@ -270,12 +266,21 @@ class DrugList(wx.ListCtrl):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
 
+    def build(self, lld: list[sqlite3.Row] | list[dict[str, Any]]):
+        for item in lld:
+            self.append(item)
+
+    def rebuild(self, lld: list[sqlite3.Row] | list[dict[str, Any]]):
+        self.DeleteAllItems()
+        self._list.clear()
+        self.build(lld)
+
     def append(self, item: dict[str, Any] | sqlite3.Row):
         def append_list(item: dict[str, Any] | sqlite3.Row):
             self._list.append({
                 f: item[f] for f in
                 ('drug_id', 'times', 'dose', 'quantity', 'name',
-                 'note', 'usage', 'usage_unit', 'sale_unit')
+                 'note', 'usage', 'usage_unit', 'sale_unit', 'sale_price')
             })
 
         def append_ui(item: dict[str, Any] | sqlite3.Row):
@@ -310,22 +315,12 @@ class DrugList(wx.ListCtrl):
                 times=item['times'],
                 dose=item['dose'],
                 usage_unit=item['usage_unit'])
-
             self.SetItem(index, 2, str(item['times']))
             self.SetItem(index, 3, item['dose'] + ' ' + item['usage_unit'])
             self.SetItem(index, 4, str(item['quantity']) + ' ' + sale_unit)
             self.SetItem(index, 5, note)
         update_list(index, item)
         update_ui(index, item)
-
-    def rebuild(self, lld: list[sqlite3.Row] | list[dict[str, Any]]):
-        self.DeleteAllItems()
-        self._list.clear()
-        self.build(lld)
-
-    def build(self, lld: list[sqlite3.Row] | list[dict[str, Any]]):
-        for item in lld:
-            self.append(item)
 
     def onSelect(self, e: wx.ListEvent):
         idx: int = e.Index
@@ -338,12 +333,10 @@ class DrugList(wx.ListCtrl):
         self.parent.note.SetValue(selected['note'])
 
     def onDeselect(self, e: wx.ListEvent):
-        state = self.mv.state
-        state.warehouse = None
+        self.mv.state.warehouse = None
 
     def upsert(self):
-        state = self.mv.state
-        wh = state.warehouse
+        wh = self.mv.state.warehouse
         assert wh is not None
         item = {
             'drug_id': wh.id,
@@ -354,6 +347,7 @@ class DrugList(wx.ListCtrl):
             'usage': wh.usage,
             'usage_unit': wh.usage_unit,
             'sale_unit': wh.sale_unit,
+            'sale_price': wh.sale_price,
             'note': self.parent.note.GetValue()
         }
         try:
@@ -364,7 +358,7 @@ class DrugList(wx.ListCtrl):
             # insert
             self.append(item)
 
-    def remove(self):
+    def pop(self):
         index = self.GetFirstSelected()
         if index != -1:
             self._list.pop(index)
@@ -373,60 +367,48 @@ class DrugList(wx.ListCtrl):
                 self.SetItem(i, 0, str(i + 1))
 
 
-class Times(wx.TextCtrl):
+class Times(NumberTextCtrl):
     def __init__(self, parent: PrescriptionPage):
         super().__init__(parent)
         self.parent = parent
         self.SetHint('lần')
-        self.Bind(wx.EVT_CHAR, self.onChar)
         self.Bind(wx.EVT_TEXT, self.onText)
 
     def onText(self, e):
         if self.parent.check_wh_do_ti_filled():
-            self.parent.quantity.set()
-            self.parent.note.AutoNote()
-
-    def onChar(self, e: wx.KeyEvent):
-        if e.KeyCode in k_number + k_special + k_tab:
-            e.Skip()
+            self.parent.quantity.FetchQuantity()
+            self.parent.note.FetchNote()
 
 
-class Dose(wx.TextCtrl):
-    def __init__(self, parent):
+class Dose(DoseTextCtrl):
+    def __init__(self, parent: PrescriptionPage):
         super().__init__(parent)
         self.parent = parent
         self.SetHint('liều')
-        self.Bind(
-            wx.EVT_CHAR,
-            lambda e: otf.only_nums(e, decimal=True, slash=True)
-        )
         self.Bind(wx.EVT_TEXT, self.onText)
 
     def onText(self, e):
         if self.parent.check_wh_do_ti_filled():
-            self.parent.quantity.set()
-            self.parent.note.SetNote()
+            self.parent.quantity.FetchQuantity()
+            self.parent.note.FetchNote()
 
 
-class Quantity(wx.TextCtrl):
+class Quantity(NumberTextCtrl):
 
-    def __init__(self, parent):
+    def __init__(self, parent: PrescriptionPage):
         super().__init__(parent)
+        self.parent = parent
         self.SetHint('Enter')
-        self.Bind(wx.EVT_CHAR, self.onChar)
 
-    def onChar(self, e: wx.KeyEvent):
-        if e.KeyCode in k_number + k_tab + k_special:
-            e.Skip()
-
-    def set(self):
-        mv = self.Parent.Parent.Parent
-        times = int(self.Parent.times.GetValue())
-        dose = self.Parent.dose.GetValue()
+    def FetchQuantity(self):
+        mv = self.parent.parent.mv
+        times = int(self.parent.times.GetValue())
+        dose = self.parent.dose.GetValue()
         days = mv.days.GetValue()
         wh = mv.state.warehouse
+        assert wh is not None
         res = otf.calc_quantity(times, dose, days, wh.sale_unit,
-                                self.Parent.Parent.Parent.config['thuoc_ban_mot_don_vi'])
+                                mv.config['thuoc_ban_mot_don_vi'])
         if res is not None:
             self.SetValue(str(res))
         else:
@@ -444,13 +426,13 @@ class Note(wx.TextCtrl):
             if self.parent.check_all_filled():
                 self.parent.drug_list.upsert()
                 self.parent.parent.mv.state.warehouse = None
-                self.parent.parent.mv.price.SetPrice()
+                self.parent.parent.mv.price.FetchPrice()
         elif e.KeyCode == k_tab:
             pass
         else:
             e.Skip()
 
-    def AutoNote(self):
+    def FetchNote(self):
         wh = self.parent.parent.mv.state.warehouse
         assert wh is not None
         self.ChangeValue(otf.get_usage_note_str(
@@ -459,20 +441,6 @@ class Note(wx.TextCtrl):
             dose=self.parent.dose.GetValue(),
             usage_unit=wh.usage_unit
         ))
-
-    def GetNote(self):
-        s = self.Value.strip()
-        wh = self.parent.parent.mv.state.warehouse
-        assert wh is not None
-        if s == otf.get_usage_note_str(
-                usage=wh.usage,
-                times=self.parent.times.Value,
-                dose=self.parent.dose.Value,
-                usage_unit=wh.usage_unit
-        ) or s == '':
-            return None
-        else:
-            return s
 
     def SetValue(self, s):
         if s == '' or s is None:
@@ -498,7 +466,7 @@ class SaveDrugButton(wx.BitmapButton):
         if self.parent.check_all_filled():
             self.parent.drug_list.upsert()
             self.parent.parent.mv.state.warehouse = None
-            self.parent.parent.mv.price.SetPrice()
+            self.parent.parent.mv.price.FetchPrice()
 
 
 class DelDrugButton(wx.BitmapButton):
@@ -511,7 +479,7 @@ class DelDrugButton(wx.BitmapButton):
     def onClick(self, e: wx.CommandEvent):
         self.parent.drug_list.remove()
         self.parent.parent.mv.state.warehouse = None
-        self.parent.parent.mv.price.SetPrice()
+        self.parent.parent.mv.price.FetchPrice()
 
 
 class ReuseDrugListButton(wx.Button):
@@ -525,8 +493,19 @@ class ReuseDrugListButton(wx.Button):
 
     def onClick(self, e):
         lld = self.parent.drug_list._list.copy()
-        weight = self.mv.weight.GetValue()
+        weight = self.mv.weight.GetWeight()
         self.mv.state.visit = None
-        self.mv.weight.SetValue(weight)
+        self.mv.weight.SetWeight(weight)
         self.parent.drug_list.rebuild(lld)
-        self.mv.updatequantitybtn.onClick(None)
+        self.mv.updatequantitybtn.update_quantity()
+
+
+class UseSamplePrescriptionBtn(wx.Button):
+    def __init__(self, parent: PrescriptionPage):
+        super().__init__(parent, label="Sử dụng toa mẫu")
+        self.parent = parent
+        self.mv = parent.parent.mv
+        self.Disable()
+        self.Bind(wx.EVT_BUTTON, self.onClick)
+
+    def onClick(self, e: wx.CommandEvent): ...

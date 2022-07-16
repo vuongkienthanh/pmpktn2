@@ -1,7 +1,7 @@
 from db.db_class import Patient, Patient, QueueList, QueueList
 import core.other_func as otf
 from core import mainview
-from core.widgets import DatePicker, GenderChoice, PhoneTextCtrl, DateTextCtrl, AgeCtrl
+from core.generic import *
 import sqlite3
 import wx
 import wx.adv as adv

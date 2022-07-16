@@ -1,4 +1,3 @@
--- Bệnh nhân
 CREATE TABLE IF NOT EXISTS patients (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL,
@@ -6,10 +5,9 @@ CREATE TABLE IF NOT EXISTS patients (
   birthdate DATE NOT NULL,
   address TEXT,
   phone TEXT,
-  past_history TEXT -- bệnh nền
+  past_history TEXT
 );
 
--- Danh sách chờ
 CREATE TABLE IF NOT EXISTS queuelist (
     id INTEGER PRIMARY KEY,
     patient_id INTEGER UNIQUE NOT NULL,
@@ -20,11 +18,9 @@ CREATE TABLE IF NOT EXISTS queuelist (
         ON UPDATE CASCADE
 );
 
--- để search bn
 CREATE INDEX IF NOT EXISTS patient_name
   ON patients (name);
 
--- Lượt khám
 CREATE TABLE IF NOT EXISTS visits (
   id INTEGER PRIMARY KEY,
   exam_datetime TIMESTAMP DEFAULT (datetime('now', 'localtime')),
@@ -33,7 +29,7 @@ CREATE TABLE IF NOT EXISTS visits (
   days INTEGER NOT NULL,
   recheck INTEGER NOT NULL,
   patient_id INTEGER NOT NULL,
-  vnote TEXT, -- bệnh sử
+  vnote TEXT,
   follow TEXT,
   FOREIGN KEY (patient_id)
     REFERENCES patients (id)
@@ -42,15 +38,14 @@ CREATE TABLE IF NOT EXISTS visits (
   CHECK (days >= 0 AND weight >=0 )
 );
 
--- Kho thuốc
 CREATE TABLE IF NOT EXISTS warehouse (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL,
-  element TEXT NOT NULL, -- thành phần thuốc
-  quantity INTEGER NOT NULL, -- số lượng trong kho
-  usage_unit TEXT NOT NULL, -- đơn vị sử dụng
-  usage TEXT NOT NULL, -- cách sử dụng
-  sale_unit TEXT, -- đơn vị bán
+  element TEXT NOT NULL,
+  quantity INTEGER NOT NULL,
+  usage_unit TEXT NOT NULL,
+  usage TEXT NOT NULL,
+  sale_unit TEXT,
   purchase_price INTEGER NOT NULL,
   sale_price INTEGER NOT NULL,
   expire_date DATE,
@@ -62,21 +57,19 @@ CREATE TABLE IF NOT EXISTS warehouse (
     CHECK (( sale_price >= purchase_price) AND (purchase_price >= 0))
 );
 
--- để search thuốc
 CREATE INDEX IF NOT EXISTS drug_name
   ON warehouse(name);
 CREATE INDEX IF NOT EXISTS drug_element 
   ON warehouse(element);
 
--- Toa thuốc
 CREATE TABLE IF NOT EXISTS linedrugs (
   id INTEGER PRIMARY KEY,
   drug_id INTEGER NOT NULL,
-  times INTEGER NOT NULL,-- số cữ
-  dose TEXT NOT NULL, -- liều 1 cữ
-  quantity INTEGER NOT NULL, -- số lượng bán ra
+  times INTEGER NOT NULL,
+  dose TEXT NOT NULL,
+  quantity INTEGER NOT NULL,
   visit_id INTEGER NOT NULL,
-  note TEXT, -- thay thế cách dùng mặc định
+  note TEXT,
   FOREIGN KEY (visit_id)
     REFERENCES visits (id)
       ON DELETE CASCADE

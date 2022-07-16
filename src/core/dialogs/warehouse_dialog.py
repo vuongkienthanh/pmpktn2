@@ -1,22 +1,24 @@
 from db.db_class import Warehouse
 import core.other_func as otf
 from core import mainview
-from core.widgets import DatePicker, NumTextCtrl
+from core.generic import DatePicker, NumberTextCtrl
 import wx
-import datetime as dt
 
 
 class WarehouseSetupDialog(wx.Dialog):
     def __init__(self, parent: 'mainview.MainView'):
+        """
+        `locale`: make calendar display in vietnamese
+        `_list`: internal list to keep track of Warehouse in dialog
+        """
         super().__init__(parent=parent, title="Kho thuốc",
                          style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
         self.locale = wx.Locale(wx.LANGUAGE_VIETNAMESE)
         self.mv = parent
         self._list: list[Warehouse] = []
 
-        self.search = wx.TextCtrl(self)
-        self.search.SetHint(
-            "Tên thuốc hoặc thành phần thuốc")
+        self.search = wx.SearchCtrl(self)
+        self.search.SetHint("Tên thuốc hoặc thành phần thuốc")
         self.lc = wx.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         for f in [
             "Mã", "Tên".ljust(40, ' '), "Thành phần".ljust(40, ' '),
@@ -53,7 +55,8 @@ class WarehouseSetupDialog(wx.Dialog):
         ])
         self.SetSizerAndFit(sizer)
 
-        self.search.Bind(wx.EVT_TEXT, self.onText)
+        self.search.Bind(wx.EVT_SEARCH, self.onSearch)
+        self.search.Bind(wx.EVT_TEXT, self.onSearchText)
         self.lc.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.lc.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
         self.lc.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onEdit)
@@ -61,23 +64,25 @@ class WarehouseSetupDialog(wx.Dialog):
         self.editbtn.Bind(wx.EVT_BUTTON, self.onEdit)
         self.delbtn.Bind(wx.EVT_BUTTON, self.onDelete)
         self.Maximize()
-        self.rebuild()
+        self.build()
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
     def clear(self):
+        """
+        clear display and internal Warehouse list
+        """
         self._list = []
         self.lc.DeleteAllItems()
 
     def get_search_value(self) -> str:
+        """
+        get string 
+        """
         s: str = self.search.GetValue()
         return s.strip().casefold()
 
-    def check_search_str_to_wh(self, wh: Warehouse, s: str | None = None) -> bool:
-        if s is None:
-            _s = self.get_search_value()
-        else:
-            _s = s
-        if (_s in wh.name.casefold()) or (_s in wh.element.casefold()):
+    def check_search_str_to_wh(self, wh: Warehouse, s: str) -> bool:
+        if (s in wh.name.casefold()) or (s in wh.element.casefold()):
             return True
         else:
             return False
@@ -88,6 +93,11 @@ class WarehouseSetupDialog(wx.Dialog):
                 lambda wh: self.check_search_str_to_wh(wh, s),
                 self.mv.state.warehouselist
         ):
+            self.append(wh)
+
+    def build(self):
+        self.clear()
+        for wh in self.mv.state.warehouselist:
             self.append(wh)
 
     def append(self, wh: Warehouse):
@@ -121,9 +131,13 @@ class WarehouseSetupDialog(wx.Dialog):
         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         e.Skip()
 
-    def onText(self, e: wx.CommandEvent):
+    def onSearch(self, e: wx.CommandEvent):
         self.rebuild(self.get_search_value())
         e.Skip()
+
+    def onSearchText(self, e: wx.CommandEvent):
+        if len(self.search.GetValue()) == 0:
+            self.build()
 
     def onSelect(self, e: wx.ListEvent):
         self.editbtn.Enable()
@@ -161,11 +175,11 @@ class WarehouseDialog(wx.Dialog):
 
         self.name = wx.TextCtrl(self, name="Tên thuốc")
         self.element = wx.TextCtrl(self, name="Thành phần")
-        self.quantity = NumTextCtrl(self, name="Số lượng")
+        self.quantity = NumberTextCtrl(self, name="Số lượng")
         self.usage_unit = wx.TextCtrl(self, name="Đơn vị sử dụng")
         self.usage = wx.TextCtrl(self, name="Cách sử dụng")
-        self.purchase_price = NumTextCtrl(self, name="Giá mua")
-        self.sale_price = NumTextCtrl(self, name="Giá bán")
+        self.purchase_price = NumberTextCtrl(self, name="Giá mua")
+        self.sale_price = NumberTextCtrl(self, name="Giá bán")
         self.sale_unit = wx.TextCtrl(self, name="Đơn vị bán")
         self.expire_date = DatePicker(self, name="Hạn sử dụng")
         self.made_by = wx.TextCtrl(self, name="Xuất xứ")
@@ -270,7 +284,7 @@ class NewWarehouseDialog(WarehouseDialog):
                 wx.MessageBox("Thêm mới thành công", "Thêm mới")
                 new_wh = Warehouse(id=lastrowid, **wh)
                 self.parent.mv.state.warehouselist.append(new_wh)
-                if self.parent.check_search_str_to_wh(new_wh):
+                if self.parent.check_search_str_to_wh(new_wh, self.parent.get_search_value()):
                     self.parent.append(new_wh)
                 e.Skip()
             except Exception as error:

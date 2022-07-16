@@ -1,6 +1,6 @@
 from core import mainview
+from core.generic import DoseTextCtrl, NumberTextCtrl
 from db.db_class import *
-import core.other_func as otf
 import wx
 import sqlite3
 from typing import Any
@@ -142,23 +142,18 @@ class Picker(wx.Choice):
         self.Bind(wx.EVT_CHOICE, lambda e: parent.adddrugbtn.check_state())
 
 
-class Dose(wx.TextCtrl):
+class Dose(DoseTextCtrl):
     def __init__(self, parent: SampleDialog, name:str):
         super().__init__(parent, name=name)
         self.SetHint('liều')
-        self.Bind(
-            wx.EVT_CHAR,
-            lambda e: otf.only_nums(e, decimal=True, slash=True)
-        )
         self.Disable()
         self.Bind(wx.EVT_TEXT, lambda e: parent.adddrugbtn.check_state())
 
 
-class Times(wx.TextCtrl):
+class Times(NumberTextCtrl):
     def __init__(self, parent: SampleDialog, name:str):
         super().__init__(parent, name=name)
         self.SetHint('lần')
-        self.Bind(wx.EVT_CHAR, otf.only_nums)
         self.Disable()
         self.Bind(wx.EVT_TEXT, lambda e: parent.adddrugbtn.check_state())
 
@@ -262,7 +257,6 @@ class ItemList(wx.ListCtrl):
         self.DeleteItem(idx)
         lsp_id = self.parent.itemlist._list_id.pop(idx)
         return lsp_id
-        
 
     def onSelect(self, e:wx.ListEvent):
         self.parent.minusdrugbtn.Enable()

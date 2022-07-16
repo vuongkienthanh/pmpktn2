@@ -4,6 +4,7 @@ from fractions import Fraction
 from typing import Any, TypeVar
 import decimal
 
+
 def bd_to_age(bd: dt.date):
     today = dt.date.today()
     delta = (today - bd).days
@@ -16,10 +17,10 @@ def bd_to_age(bd: dt.date):
     return age
 
 
-def only_nums(e:wx.KeyEvent, decimal=False, tab=True, slash=False):
+def only_nums(e: wx.KeyEvent, decimal=False, tab=True, slash=False):
     # print(e.KeyCode)
     # back, del, home, end, left,right
-    s =  e.GetEventObject().GetValue()
+    s = e.GetEventObject().GetValue()
     special = [8, 314, 316, 127, 313, 312]
     if decimal:
         if '/' not in s and '.' not in s:
@@ -41,12 +42,12 @@ def check_blank(val: str):
     return None if val.strip() == '' else val.strip()
 
 
-def check_none(val: Any|None):
+def check_none(val: Any | None):
     return str(val) if val else ''
 
 
-def calc_quantity(times:int, dose:str, days:int, sale_unit:str |None, list_of_unit:list[str]) -> int |None:
-    def calc(times:int, dose:str, days:int) -> int:
+def calc_quantity(times: int, dose: str, days: int, sale_unit: str | None, list_of_unit: list[str]) -> int | None:
+    def calc(times: int, dose: str, days: int) -> int:
         if '/' in dose:
             numer, denom = [int(i) for i in dose.split('/')]
             return round(times * Fraction(numer, denom) * days)

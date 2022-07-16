@@ -135,7 +135,7 @@ class Connection():
                 = ({t.qmark_style_fields()})
                 WHERE id = {base.id}
             """,
-                               base.into_sql_args()
+                               base.into_qmark_style_params()
                                ).rowcount
 
 
@@ -162,7 +162,7 @@ class Connection():
                 ld.times, ld.dose,
                 ld.quantity, ld.note,
                 wh.usage, wh.usage_unit,
-                wh.sale_unit
+                wh.sale_unit, wh.sale_price
             FROM (SELECT * FROM linedrugs
                   WHERE visit_id = {vid}
             ) AS ld

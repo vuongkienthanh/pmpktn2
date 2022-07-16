@@ -63,15 +63,29 @@ class BASE():
         """
         return ','.join([f":{f}" for f in cls.fields()])
 
-    def into_sql_args(self) -> tuple:
+    def into_qmark_style_params(self) -> tuple:
+        """
+        qmark-style parameters
+        """
         return tuple((getattr(self, attr) for attr in self.fields()))
 
-    def into_sql_kwargs(self) -> dict[str, Any]:
+    def into_named_style_params(self) -> dict[str, Any]:
+        """
+        named-style parameters
+        """
         return {attr: getattr(self, attr) for attr in self.fields()}
 
 
 @dataclass
 class Patient(BASE):
+    """ Bệnh nhân
+    - `name`: Tên
+    - `gender`: Giới tính
+    - `birthdate`: Ngày tháng năm sinh
+    - `address`: Địa chỉ nhà
+    - `phone`: Số điện thoại
+    - `past_history`: Tiền căn, dị ứng
+    """
     table_name = 'patients'
     not_in_fields = ['id']
     id: int
@@ -85,6 +99,10 @@ class Patient(BASE):
 
 @dataclass
 class QueueList(BASE):
+    """ Lượt chờ khám
+    - `added_datetime`: Giờ đăng ký
+    - `patient_id`: Mã bệnh nhân
+    """
     table_name = 'queuelist'
     not_in_fields = ['id', 'added_datetime']
     id: int
@@ -94,6 +112,16 @@ class QueueList(BASE):
 
 @dataclass
 class Visit(BASE):
+    """Lượt khám
+    - `exam_datetime`: Thời điểm khám bệnh
+    - `diagnoses`: Chẩn đoán
+    - `weight`: Cân nặng
+    - `days`: Số ngày cho thuốc
+    - `recheck`: Số ngày tái khám
+    - `patient_id`: Mã bệnh nhân
+    - `follow`: Lời dặn dò
+    - `vnote`: Bệnh sử
+    """
     table_name = 'visits'
     not_in_fields = ['id', 'exam_datetime']
     id: int
@@ -109,6 +137,13 @@ class Visit(BASE):
 
 @dataclass
 class LineDrug(BASE):
+    """Thuốc trong toa
+    - `drug_id`: Mã thuốc
+    - `dose`: Liều một cữ
+    - `times`: Số cữ
+    - `quantity`: Số lượng
+    - `visit_id`: Mã lượt khám
+    """
     table_name = 'linedrugs'
     not_in_fields = ['id']
     id: int
@@ -122,6 +157,19 @@ class LineDrug(BASE):
 
 @dataclass
 class Warehouse(BASE):
+    """Thuốc trong kho
+    - `name`: Tên thuốc
+    - `element`: Thành phần thuốc
+    - `quantity`: Số lượng
+    - `usage_unit`: Đơn vị sử dụng
+    - `usage`: Cách sử dụng
+    - `purchase_price`: Giá mua
+    - `sale_price`: Giá bán
+    - `sale_unit`: Đơn vị bán
+    - `expire_date`: Ngày hết hạn
+    - `made_by`: Xuất xứ
+    - `note`: Ghi chú
+    """
     table_name = 'warehouse'
     not_in_fields = ['id']
     id: int
@@ -140,6 +188,9 @@ class Warehouse(BASE):
 
 @dataclass
 class SamplePrescription(BASE):
+    """Toa mẫu
+    - `name`: Tên toa mẫu
+    """
     table_name = 'sampleprescription'
     not_in_fields = ['id']
     id: int
@@ -148,6 +199,12 @@ class SamplePrescription(BASE):
 
 @dataclass
 class LineSamplePrescription(BASE):
+    """Thuốc trong toa mẫu
+    - `drug_id`: Mã thuốc
+    - `sample_id`: Mã toa thuốc
+    - `times`: Liều một cữ
+    - `dose`: Số cữ
+    """
     table_name = 'linesampleprescription'
     not_in_fields = ['id']
     id: int
