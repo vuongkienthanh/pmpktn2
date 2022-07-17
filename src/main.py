@@ -14,9 +14,8 @@ from typing import Any
 class App(wx.App):
     def __init__(self, sample):
         super().__init__()
-        
+
         config = self.get_config()
-                
 
         from core.mainview import MainView
         if sample:
@@ -28,13 +27,13 @@ class App(wx.App):
         else:
             con = dbf.Connection(MY_DATABASE_PATH)
             con.make_db()
-        mv = MainView(con, config)
+        mv = MainView(con, config, sample)
         self.SetTopWindow(mv)
         mv.Show()
         self.MainLoop()
-    
-    def get_config(self) ->dict[str, Any]:
-        with open(os.path.join(APP_DIR, "config.json"), "r", encoding="utf-8") as f:
+
+    def get_config(self) -> dict[str, Any]:
+        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
             config = json.load(f)
             if not isinstance(config, dict):
                 sys.exit("ERROR: Config file is not a dict")

@@ -21,10 +21,10 @@ class WarehouseSetupDialog(wx.Dialog):
         self.search.SetHint("Tên thuốc hoặc thành phần thuốc")
         self.lc = wx.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         for f in [
-            "Mã", "Tên".ljust(40, ' '), "Thành phần".ljust(40, ' '),
+            "Mã", "Tên".ljust(40), "Thành phần".ljust(40),
             "Số lượng", "Đơn vị sử dụng", "Phương thức sử dụng",
             "Giá mua", "Giá bán", "Đơn vị bán", "Ngày hết hạn",
-            "Xuất xứ", "Ghi chú".ljust(60, ' ')
+            "Xuất xứ", "Ghi chú".ljust(60)
         ]:
             self.lc.AppendColumn(f, width=-2)
         self.newbtn = wx.Button(self, label="Thêm mới")

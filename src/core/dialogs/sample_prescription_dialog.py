@@ -61,7 +61,7 @@ class SampleList(wx.ListCtrl):
     def __init__(self, parent: SampleDialog, name:str):
         super().__init__(parent, style=wx.LC_SINGLE_SEL | wx.LC_REPORT | wx.LC_NO_HEADER, name=name)
         self.parent = parent
-        self.AppendColumn("name".ljust(100, ' '), width=-2)
+        self.AppendColumn("name".ljust(100), width=-2)
         self.DeleteAllItems()
         for sp in self.parent.mv.state.sampleprescriptionlist:
             self.append(sp)
@@ -200,8 +200,8 @@ class AddDrugButton(wx.Button):
                 'dose': dose,
             })
             self.parent.picker.SetSelection(wx.NOT_FOUND)
-            self.parent.times.ChangeValue('')
-            self.parent.dose.ChangeValue('')
+            self.parent.times.Clear()
+            self.parent.dose.Clear()
             self.Disable()
         except Exception as error:
             wx.MessageBox(f"Không thêm thuốc vào toa mẫu được\n{error}", "Lỗi")
@@ -227,8 +227,8 @@ class ItemList(wx.ListCtrl):
         self.parent = parent
         self._list_id: list[int] = []
         for s in [
-            "Tên thuốc".ljust(40, " "),
-            "Thành phần".ljust(40, " "),
+            "Tên thuốc".ljust(40),
+            "Thành phần".ljust(40),
             "Số cữ",
             "Liều 1 cữ"
         ]:
@@ -255,7 +255,7 @@ class ItemList(wx.ListCtrl):
     def pop(self, idx:int) ->int:
         assert idx >=0
         self.DeleteItem(idx)
-        lsp_id = self.parent.itemlist._list_id.pop(idx)
+        lsp_id = self._list_id.pop(idx)
         return lsp_id
 
     def onSelect(self, e:wx.ListEvent):

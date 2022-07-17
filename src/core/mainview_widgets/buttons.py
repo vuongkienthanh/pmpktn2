@@ -1,23 +1,15 @@
 from path_init import weight_bm
-from db.db_class import *
-from core.initialize import *
+from db.db_class import Visit, Patient, LineDrug
 import core.other_func as otf
 from core import mainview as mv
 from core.printer import PrintOut, printdata
-from core.state import State
-from core.generic import *
-from core.patient_book import PatientBook, VisitList
-from core.order_book import OrderBook
-from core.menubar import MyMenuBar
-from core.accel import my_accel
-from itertools import cycle
+
 import sqlite3
 import wx
-from typing import Any
 
 
 class GetWeightBtn(wx.BitmapButton):
-    """ Used in conjuction with WeightCtrl """
+    """Used in conjuction with WeightCtrl"""
 
     def __init__(self, parent: "mv.MainView"):
         super().__init__(parent, bitmap=wx.Bitmap(weight_bm))
@@ -35,35 +27,6 @@ class GetWeightBtn(wx.BitmapButton):
                 ORDER BY exam_datetime DESC
                 LIMIT 1
             """).fetchone()['weight'])
-
-
-class DaysCtrl(wx.SpinCtrl):
-    """ Changing DaysCtrl Value also changes RecheckCtrl Value """
-
-    def __init__(self, parent: "mv.MainView", **kwargs):
-        super().__init__(
-            parent,
-            style=wx.SP_ARROW_KEYS,
-            initial=parent.config["so_ngay_toa_ve_mac_dinh"],
-            **kwargs
-        )
-        self.mv = parent
-        self.SetRange(0, 100)
-        self.Disable()
-        self.Bind(wx.EVT_SPINCTRL, self.onSpin)
-
-    def onSpin(self, e: wx.SpinEvent):
-        self.mv.recheck.SetValue(e.GetPosition())
-
-
-class RecheckCtrl(wx.SpinCtrl):
-    """Independant of DaysCtrl"""
-
-    def __init__(self, parent: "mv.MainView", **kwargs):
-        super().__init__(parent, style=wx.SP_ARROW_KEYS,
-                         initial=parent.config["so_ngay_toa_ve_mac_dinh"], **kwargs)
-        self.SetRange(0, 100)
-        self.Disable()
 
 
 class NoRecheckBtn(wx.Button):
@@ -109,39 +72,6 @@ class UpdateQuantityBtn(wx.Button):
         self.mv.price.FetchPrice()
 
 
-class PriceCtrl(wx.TextCtrl):
-    """A TextCtrl with proper Vietnamese currency format with default set according to config"""
-
-    def __init__(self, parent: "mv.MainView", **kwargs):
-        super().__init__(parent, **kwargs)
-        self.mv = parent
-        self.clear()
-
-    def FetchPrice(self):
-        price: int = self.mv.config['cong_kham_benh']
-        price += sum(
-            item['sale_price'] * item['quantity']
-            for item in self.mv.order_book.page0.drug_list._list
-        )
-        self.ChangeValue(self.num_to_str(price))
-
-    def num_to_str(self, price: int) -> str:
-        """Return proper currency format str from int"""
-        s = str(price)
-        res = ''
-        for char, cyc in zip(s[::-1], cycle(range(3))):
-            res += char
-            if cyc == 2:
-                res += '.'
-        else:
-            if res[-1] == '.':
-                res = res[:-1]
-        return res[::-1]
-
-    def clear(self):
-        self.ChangeValue(self.num_to_str(self.mv.config['cong_kham_benh']))
-
-
 class NewVisitBtn(wx.Button):
     """Deselect a visit from visitlist to simulate new visit"""
 
@@ -172,15 +102,14 @@ class SaveBtn(wx.Button):
             self.insert_visit()
 
     def insert_visit(self):
-        diagnosis: str = self.mv.diagnosis.GetValue().strip()
-        weight = self.mv.weight.GetWeight()
-        if otf.check_mainview_filled(diagnosis, weight):
+        diagnosis: str = self.mv.diagnosis.GetValue()
+        if self.mv.check_filled():
             p = self.mv.state.patient
             assert p is not None
             past_history = otf.check_blank(self.mv.past_history.GetValue())
             v = {
-                'diagnosis': diagnosis,
-                'weight': weight,
+                'diagnosis': diagnosis.strip(),
+                'weight': self.mv.weight.GetWeight(),
                 'days': self.mv.days.GetValue(),
                 'recheck': self.mv.recheck.GetValue(),
                 'patient_id': p.id,
@@ -231,15 +160,14 @@ class SaveBtn(wx.Button):
                 wx.MessageBox(f"Lỗi không lưu lượt khám được\n{error}", "Lỗi")
 
     def update_visit(self):
-        diagnosis: str = self.mv.diagnosis.GetValue().strip()
-        weight = self.mv.weight.GetWeight()
-        if otf.check_mainview_filled(diagnosis, weight):
+        diagnosis: str = self.mv.diagnosis.GetValue()
+        if self.mv.check_filled():
             p = self.mv.state.patient
             assert p is not None
             past_history = otf.check_blank(self.mv.past_history.GetValue())
             v = self.mv.state.visit
             assert v is not None
-            v.diagnosis = diagnosis
+            v.diagnosis = diagnosis.strip()
             v.weight = self.mv.weight.GetWeight()
             v.days = self.mv.days.GetValue()
             v.recheck = self.mv.recheck.GetValue()

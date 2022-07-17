@@ -87,13 +87,13 @@ class State():
         page.SetFocus()
 
     def onPatientDeselect(self) -> None:
-        self.mv.name.ChangeValue('')
-        self.mv.gender.ChangeValue('')
-        self.mv.birthdate.ChangeValue('')
-        self.mv.age.ChangeValue('')
-        self.mv.address.ChangeValue('')
-        self.mv.phone.ChangeValue('')
-        self.mv.past_history.ChangeValue('')
+        self.mv.name.Clear()
+        self.mv.gender.Clear()
+        self.mv.birthdate.Clear()
+        self.mv.age.Clear()
+        self.mv.address.Clear()
+        self.mv.phone.Clear()
+        self.mv.past_history.Clear()
         self.mv.savebtn.SetLabel("Lưu")
         self.mv.savebtn.Disable()
         self.mv.updatequantitybtn.Disable()
@@ -149,8 +149,8 @@ class State():
         self.mv.visit_list.SetFocus()
 
     def onVisitDeselect(self) -> None:
-        self.mv.diagnosis.ChangeValue('')
-        self.mv.vnote.ChangeValue('')
+        self.mv.diagnosis.Clear()
+        self.mv.vnote.Clear()
         self.mv.weight.SetValue(0)
         self.mv.days.SetValue(self.mv.config['so_ngay_toa_ve_mac_dinh'])
         self.mv.recheck.SetValue(self.mv.config['so_ngay_toa_ve_mac_dinh'])
@@ -180,22 +180,24 @@ class State():
         else:
             self.onWarehouseDeselect()
 
-    def onWarehouseSelect(self, wh) -> None:
-        pg = self.mv.order_book.GetPage(0)
+    def onWarehouseSelect(self, wh:Warehouse) -> None:
+        pg = self.mv.order_book.page0
         pg.drug_picker.SetValue(wh.name)
+        pg.usage.SetLabel(wh.usage)
         pg.usage_unit.SetLabel(wh.usage_unit)
         pg.sale_unit.SetLabel(wh.sale_unit if wh.sale_unit else wh.usage_unit)
         pg.drug_picker.SelectAll()
 
     def onWarehouseDeselect(self) -> None:
-        pg = self.mv.order_book.GetPage(0)
+        pg = self.mv.order_book.page0
         pg.drug_picker.ChangeValue('')
+        pg.usage.SetLabel("{Cách dùng}")
         pg.usage_unit.SetLabel('{Đơn vị}')
         pg.sale_unit.SetLabel('{Đơn vị}')
-        pg.times.ChangeValue('')
-        pg.dose.ChangeValue('')
-        pg.quantity.ChangeValue('')
-        pg.note.ChangeValue('')
+        pg.times.Clear()
+        pg.dose.Clear()
+        pg.quantity.Clear()
+        pg.note.Clear()
 
     @property
     def visitlist(self) -> list[sqlite3.Row]:
@@ -239,21 +241,21 @@ class State():
                 return wh
 
     def get_queuelist(self) -> list[sqlite3.Row]:
-        return self.mv.con.execute("""
+        return self.mv.con.execute(f"""
             SELECT
                 p.id AS pid,
                 p.name,
                 p.gender,
                 p.birthdate,
                 ql.added_datetime
-            FROM patients AS p
-            JOIN queuelist AS ql
+            FROM {Patient.table_name} AS p
+            JOIN {QueueList.table_name} AS ql
             ON ql.patient_id = p.id
             ORDER BY ql.added_datetime ASC
         """).fetchall()
 
     def get_todaylist(self) -> list[sqlite3.Row]:
-        return self.mv.con.execute("""
+        return self.mv.con.execute(f"""
             SELECT
                 p.id AS pid,
                 p.name,
@@ -261,9 +263,9 @@ class State():
                 p.birthdate,
                 v.id AS vid,
                 v.exam_datetime
-            FROM patients AS p
+            FROM {Patient.table_name} AS p
             JOIN (
-                SELECT id,patient_id,exam_datetime FROM visits
+                SELECT id,patient_id,exam_datetime FROM {Visit.table_name}
                 WHERE date(exam_datetime) = date('now', 'localtime')
             ) AS v
             ON v.patient_id = p.id

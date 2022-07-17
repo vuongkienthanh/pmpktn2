@@ -1,1 +1,2 @@
-from core.mainview_widgets.buttons import *
+from .buttons import *
+from .widgets import *

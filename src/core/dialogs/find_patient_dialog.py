@@ -16,9 +16,9 @@ class SearchPatientList(wx.ListCtrl):
             size=(-1, 26 * num_of_lines)
         )
         self.AppendColumn('Mã BN', width=-2)
-        self.AppendColumn('Họ tên'.ljust(40, ' '), width=-2)
+        self.AppendColumn('Họ tên'.ljust(60), width=-2)
         self.AppendColumn('Giới', width=-2)
-        self.AppendColumn('Ngày sinh'.ljust(10, ' '), width=-2)
+        self.AppendColumn('Ngày sinh'.ljust(10), width=-2)
         self.num_of_lines = num_of_lines
         self.page_index: int = 0
         self.saved_pages: list[list] = []
@@ -196,7 +196,7 @@ class FindPatientDialog(wx.Dialog):
                 break
 
     def clear(self):
-        self.search.ChangeValue('')
+        self.search.Clear()
         self.lc.clear()
         self.prevbtn.Disable()
         self.nextbtn.Disable()

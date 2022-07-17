@@ -2,7 +2,7 @@ from db import db_func
 from core.initialize import window_size, background_color
 import core.other_func as otf
 from core.state import State
-from core.generic import WeightCtrl, AgeCtrl, PhoneTextCtrl, DateTextCtrl
+from core.generic import AgeCtrl, PhoneTextCtrl, DateTextCtrl, WeightCtrl
 from core.mainview_widgets import (
     GetWeightBtn, DaysCtrl, UpdateQuantityBtn,
     RecheckCtrl, NoRecheckBtn, PriceCtrl,
@@ -18,7 +18,7 @@ from typing import Any
 
 class MainView(wx.Frame):
 
-    def __init__(self, con: 'db_func.Connection', config: dict[str, Any]):
+    def __init__(self, con: 'db_func.Connection', config: dict[str, Any], sample:bool=False):
         super().__init__(
             parent=None,
             title='PHẦN MỀM PHÒNG KHÁM TẠI NHÀ',
@@ -30,6 +30,7 @@ class MainView(wx.Frame):
         self.con = con
         self.state = State(self)
         self.config = config
+        self.sample = sample
 
         self.patient_book = PatientBook(self)
         self.visit_list = VisitList(self)
@@ -38,10 +39,10 @@ class MainView(wx.Frame):
         self.birthdate = otf.disable_text_ctrl(
             DateTextCtrl(self, name="Ngày sinh:"))
         self.age = otf.disable_text_ctrl(AgeCtrl(self, name="Tuổi:"))
-        self.phone = otf.disable_text_ctrl(
-            PhoneTextCtrl(self, name="Địa chỉ:"))
         self.address = otf.disable_text_ctrl(
-            wx.TextCtrl(self, name="Điện thoại:"))
+            wx.TextCtrl(self, name="Địa chỉ:"))
+        self.phone = otf.disable_text_ctrl(
+            PhoneTextCtrl(self, name="Điện thoại:"))
         self.past_history = wx.TextCtrl(
             self, style=wx.TE_MULTILINE, name="Bệnh nền, dị ứng:")
         self.diagnosis = wx.TextCtrl(self, name="Chẩn đoán:")
@@ -70,9 +71,9 @@ class MainView(wx.Frame):
 
         left_sizer = wx.BoxSizer(wx.VERTICAL)
         left_sizer.AddMany([
-            (self.patient_book, 10, wx.EXPAND | wx.LEFT | wx.TOP, 10),
+            (self.patient_book, 10, wx.EXPAND),
             (wx.StaticText(self, label='Lượt khám cũ:'), 0, wx.EXPAND | wx.ALL, 10),
-            (self.visit_list, 4, wx.EXPAND | wx.LEFT | wx.BOTTOM, 10),
+            (self.visit_list, 4, wx.EXPAND),
         ])
         name_row = wx.BoxSizer(wx.HORIZONTAL)
         name_row.AddMany([
@@ -128,7 +129,7 @@ class MainView(wx.Frame):
         ])
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.AddMany([
-            (left_sizer, 4, wx.EXPAND),
+            (left_sizer, 4, wx.EXPAND | wx.ALL, 10),
             (right_sizer, 6, wx.EXPAND | wx.ALL, 10)
         ])
         self.SetSizer(sizer)
@@ -146,3 +147,15 @@ class MainView(wx.Frame):
     def start(self):
         self.patient_book.page0.build(self.state.queuelist)
         self.patient_book.page1.build(self.state.todaylist)
+
+    def check_filled(self) -> bool:
+        diagnosis: str = self.diagnosis.GetValue()
+        weight = self.weight.GetWeight()
+        if diagnosis.strip() == '':
+            wx.MessageBox("Chưa nhập chẩn đoán", "Lỗi")
+            return False
+        elif weight == 0:
+            wx.MessageBox(f"Cân nặng = 0", "Lỗi")
+            return False
+        else:
+            return True

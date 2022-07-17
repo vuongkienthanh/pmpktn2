@@ -14,7 +14,7 @@ import os.path
 import sys
 import os
 import sqlite3
-
+import json
 
 class MyMenuBar(wx.MenuBar):
 
@@ -229,16 +229,26 @@ class MyMenuBar(wx.MenuBar):
         SetupDialog(mv).ShowModal()
 
     def onMenuJSON(self, e):
-        if sys.platform == "win32":
-            os.startfile(CONFIG_PATH, "edit")
-        elif sys.platform == "linux":
-            prog = shutil.which("gedit") or \
-                shutil.which("xed") or \
-                shutil.which("kwrite") or \
-                "xdg-open"
-            subprocess.run([prog, CONFIG_PATH])
-        elif sys.platform == "darwin":
-            subprocess.run(['open', '-e', CONFIG_PATH])
+        def openjson():
+            if sys.platform == "win32":
+                os.startfile(CONFIG_PATH, "edit")
+            elif sys.platform == "linux":
+                prog = shutil.which("gedit") or \
+                    shutil.which("xed") or \
+                    shutil.which("kwrite") or \
+                    "xdg-open"
+                subprocess.run([prog, CONFIG_PATH])
+            elif sys.platform == "darwin":
+                subprocess.run(['open', '-e', CONFIG_PATH])
+        while True:
+            openjson()
+            mv: 'mainview.MainView' = self.GetFrame()
+            try:
+                mv.config = json.load(open(CONFIG_PATH, "r", encoding="utf-8"))
+                break
+            except json.JSONDecodeError as error:
+                wx.MessageBox(f"Lỗi JSON\n{error}", "Lỗi")
+
 
     def onResetSetting(self, e):
         if wx.MessageBox(
@@ -247,6 +257,9 @@ class MyMenuBar(wx.MenuBar):
             style=wx.OK | wx.CANCEL | wx.CENTRE
         ) == wx.OK:
             shutil.copyfile(
-                os.path.join(os.path.dirname(SRC_DIR), 'default_config.json'),
+                os.path.join(SRC_DIR, 'default_config.json'),
                 CONFIG_PATH
             )
+            mv: 'mainview.MainView' = self.GetFrame()
+            mv.config = json.load(open(CONFIG_PATH, "r", encoding="utf-8"))
+            wx.MessageBox("Thành công", "Khôi phục cài đặt gốc")

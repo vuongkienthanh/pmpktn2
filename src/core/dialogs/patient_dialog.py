@@ -1,10 +1,12 @@
 from db.db_class import Patient, Patient, QueueList, QueueList
+from core.generic import DateTextCtrl, DatePicker, AgeCtrl, PhoneTextCtrl, GenderChoice
 import core.other_func as otf
 from core import mainview
-from core.generic import *
 import sqlite3
 import wx
 import wx.adv as adv
+
+
 
 
 class BasePatientDialog(wx.Dialog):
@@ -26,7 +28,6 @@ class BasePatientDialog(wx.Dialog):
             wx.DateTime.Today()
         )
         self.age = otf.disable_text_ctrl(AgeCtrl(self, name="Tuổi"))
-
         self.address = wx.TextCtrl(self, style=wx.TE_MULTILINE, name="Địa chỉ")
         self.phone = PhoneTextCtrl(self, name="Điện thoại")
         self.past_history = wx.TextCtrl(

@@ -17,23 +17,6 @@ def bd_to_age(bd: dt.date):
     return age
 
 
-def only_nums(e: wx.KeyEvent, decimal=False, tab=True, slash=False):
-    # print(e.KeyCode)
-    # back, del, home, end, left,right
-    s = e.GetEventObject().GetValue()
-    special = [8, 314, 316, 127, 313, 312]
-    if decimal:
-        if '/' not in s and '.' not in s:
-            special.append(46)
-    if tab:
-        special.append(9)
-    if slash:
-        if '.' not in s and '/' not in s:
-            special.append(47)
-    if e.KeyCode in list(range(48, 58)) + special:
-        e.Skip()
-
-
 def get_usage_note_str(usage, times, dose, usage_unit):
     return f"{usage} ngày {times} lần, lần {dose} {usage_unit}"
 
@@ -73,14 +56,3 @@ def disable_text_ctrl(w: TC) -> TC:
     w.SetBackgroundColour(wx.Colour(168, 168, 168))
     w.SetForegroundColour(wx.Colour(0, 0, 0))
     return w
-
-
-def check_mainview_filled(diagnosis: str, weight: decimal.Decimal) -> bool:
-    if diagnosis.strip() == '':
-        wx.MessageBox("Chưa nhập chẩn đoán", "Lỗi")
-        return False
-    elif weight == 0:
-        wx.MessageBox(f"Cân nặng = 0", "Lỗi")
-        return False
-    else:
-        return True
