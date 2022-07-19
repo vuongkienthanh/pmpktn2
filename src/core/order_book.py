@@ -38,33 +38,33 @@ class PrescriptionPage(wx.Panel):
         def static(s):
             return (wx.StaticText(self, label=s), 0, wx.ALIGN_CENTER | wx.RIGHT, 2)
 
-        def widget(w, p=1):
+        def widget(w, p=0):
             return (w, p, wx.RIGHT, 2)
 
         drug_row = wx.BoxSizer(wx.HORIZONTAL)
         drug_row.AddMany([
             static('Thuốc'),
-            widget(self.drug_picker, 4),
+            widget(self.drug_picker, 1),
             (self.usage, 0, wx.ALIGN_CENTER | wx.RIGHT, 2),
-            widget(self.times, 0),
+            widget(self.times),
             static("lần, lần"),
-            widget(self.dose, 0),
+            widget(self.dose),
             (self.usage_unit, 0, wx.ALIGN_CENTER | wx.RIGHT, 10),
             static(u"\u21D2 Tổng cộng:"),
             widget(self.quantity),
             (self.sale_unit, 0, wx.ALIGN_CENTER | wx.RIGHT, 2),
-            widget(self.save_drug_btn, 0),
-            widget(self.del_drug_btn, 0)
+            widget(self.save_drug_btn),
+            widget(self.del_drug_btn)
         ])
         usage_row = wx.BoxSizer(wx.HORIZONTAL)
         usage_row.AddMany([
             static('Cách dùng:'),
-            widget(self.note)
+            widget(self.note,1)
         ])
         btn_row = wx.BoxSizer(wx.HORIZONTAL)
         btn_row.AddMany([
-            widget(self.reuse_druglist_btn, 0),
-            widget(self.use_sample_prescription_btn, 0),
+            widget(self.reuse_druglist_btn),
+            widget(self.use_sample_prescription_btn),
         ])
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddMany([

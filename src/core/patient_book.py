@@ -1,3 +1,4 @@
+from core.initialize import left
 from core import mainview
 from db.db_class import Patient, Visit
 import wx
@@ -8,7 +9,7 @@ class PatientBook(wx.Notebook):
     """ Container for patient lists """
 
     def __init__(self, parent: 'mainview.MainView'):
-        super().__init__(parent)
+        super().__init__(parent, size=(left,-1))
         self.mv = parent
         self.page0 = QueuingPatientList(self)
         self.page1 = TodayPatientList(self)
@@ -35,9 +36,9 @@ class PatientListCtrl(wx.ListCtrl):
         self.parent = parent
         self.mv = parent.mv
         self.AppendColumn('Mã BN')
-        self.AppendColumn('Họ tên')
+        self.AppendColumn('Họ tên'.ljust(40), width=-2)
         self.AppendColumn('Giới')
-        self.AppendColumn('Ngày sinh')
+        self.AppendColumn('Ngày sinh'.ljust(12), width=-2)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick)
@@ -64,7 +65,7 @@ class QueuingPatientList(PatientListCtrl):
 
     def __init__(self, parent: PatientBook):
         super().__init__(parent)
-        self.AppendColumn('Giờ đăng ký')
+        self.AppendColumn('Giờ đăng ký'.ljust(20), width=-2)
 
     def append_ui(self, row: sqlite3.Row):
         self.Append([

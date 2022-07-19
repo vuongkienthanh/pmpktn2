@@ -1,5 +1,5 @@
 from db import db_func
-from core.initialize import window_size, background_color
+from core.initialize import  background_color, window_size
 import core.other_func as otf
 from core.state import State
 from core.generic import AgeCtrl, PhoneTextCtrl, DateTextCtrl, WeightCtrl
@@ -21,11 +21,9 @@ class MainView(wx.Frame):
     def __init__(self, con: 'db_func.Connection', config: dict[str, Any], sample: bool = False):
         super().__init__(
             parent=None,
-            title='PHẦN MỀM PHÒNG KHÁM TẠI NHÀ',
-            pos=(10, 10),
-            size=window_size)
+            pos=(20,20),
+            title='PHẦN MỀM PHÒNG KHÁM TẠI NHÀ')
         self.SetBackgroundColour(background_color)
-        self.SetMinClientSize(window_size)
 
         self.con = con
         self.state = State(self)
@@ -77,15 +75,15 @@ class MainView(wx.Frame):
         ])
         name_row = wx.BoxSizer(wx.HORIZONTAL)
         name_row.AddMany([
-            *comb(self.name, 3),
-            *comb(self.gender, 1),
-            *comb(self.birthdate, 2),
-            *comb(self.age, 2, 0),
+            *comb(self.name, 1),
+            *comb(self.gender, 0),
+            *comb(self.birthdate, 0),
+            *comb(self.age, 0, 0),
         ])
         addr_row = wx.BoxSizer(wx.HORIZONTAL)
         addr_row.AddMany([
-            *comb(self.address, 6),
-            *comb(self.phone, 2, 0)
+            *comb(self.address, 1),
+            *comb(self.phone, 0, 0)
         ])
         diag_row = wx.BoxSizer(wx.HORIZONTAL)
         diag_row.AddMany([
@@ -102,7 +100,7 @@ class MainView(wx.Frame):
         recheck_row.AddMany([
             *comb(self.recheck),
             widget(self.norecheck, 0, 5),
-            (0, 0, 3),
+            (0, 0, 1),
             *comb(self.price, 0, 0)
 
         ])
@@ -115,12 +113,12 @@ class MainView(wx.Frame):
         right_sizer.AddMany([
             (name_row, 0, wx.EXPAND),
             (addr_row, 0, wx.EXPAND),
-            (wx.StaticText(self, label=self.past_history.Name)),
+            (wx.StaticText(self, label=self.past_history.Name),0,wx.EXPAND),
             widget(self.past_history, 1, 0),
             (diag_row, 0, wx.EXPAND),
-            (wx.StaticText(self, label=self.vnote.Name)),
+            (wx.StaticText(self, label=self.vnote.Name),0,wx.EXPAND),
             widget(self.vnote, 1, 0),
-            (weight_row, 0),
+            (weight_row, 0,wx.EXPAND),
             (self.order_book, 3, wx.EXPAND),
             (recheck_row, 0, wx.EXPAND),
             (self.follow, 0, wx.EXPAND),
@@ -130,9 +128,9 @@ class MainView(wx.Frame):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.AddMany([
             (left_sizer, 4, wx.EXPAND | wx.ALL, 10),
-            (right_sizer, 4, wx.EXPAND | wx.ALL, 10)
+            (right_sizer, 6, wx.EXPAND | wx.ALL, 10)
         ])
-        self.SetSizer(sizer)
+        self.SetSizerAndFit(sizer)
 
         self.SetMenuBar(MyMenuBar())
         self.SetAcceleratorTable(my_accel)

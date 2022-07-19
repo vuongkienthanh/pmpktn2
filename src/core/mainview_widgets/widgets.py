@@ -73,7 +73,7 @@ class Follow(wx.ComboBox):
         super().__init__(
             parent,
             style=wx.CB_DROPDOWN,
-            choices=[f"{i}: {j}" for i, j in choice_dict.items()],
+            choices=[f"{i}: {j[:100]}..." for i, j in choice_dict.items()],
             **kwargs
         )
         self.choice_dict = choice_dict
