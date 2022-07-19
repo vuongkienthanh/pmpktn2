@@ -1,5 +1,5 @@
 from db import db_func
-from core.initialize import  background_color, window_size
+from core.initialize import  background_color, tsize
 import core.other_func as otf
 from core.state import State
 from core.generic import AgeCtrl, PhoneTextCtrl, DateTextCtrl, WeightCtrl
@@ -32,20 +32,20 @@ class MainView(wx.Frame):
 
         self.patient_book = PatientBook(self)
         self.visit_list = VisitList(self)
-        self.name = otf.disable_text_ctrl(wx.TextCtrl(self, name="Họ tên:"))
-        self.gender = otf.disable_text_ctrl(wx.TextCtrl(self, name="Giới:"))
+        self.name = otf.disable_text_ctrl(wx.TextCtrl(self,size=tsize(0.1), name="Họ tên:"))
+        self.gender = otf.disable_text_ctrl(wx.TextCtrl(self, size=tsize(0.025), name="Giới:"))
         self.birthdate = otf.disable_text_ctrl(
-            DateTextCtrl(self, name="Ngày sinh:"))
-        self.age = otf.disable_text_ctrl(AgeCtrl(self, name="Tuổi:"))
+            DateTextCtrl(self, size=tsize(0.05),name="Ngày sinh:"))
+        self.age = otf.disable_text_ctrl(AgeCtrl(self, size=tsize(0.055), name="Tuổi:"))
         self.address = otf.disable_text_ctrl(
             wx.TextCtrl(self, name="Địa chỉ:"))
         self.phone = otf.disable_text_ctrl(
-            PhoneTextCtrl(self, name="Điện thoại:"))
+            PhoneTextCtrl(self, size=tsize(0.055), name="Điện thoại:"))
         self.past_history = wx.TextCtrl(
             self, style=wx.TE_MULTILINE, name="Bệnh nền, dị ứng:")
         self.diagnosis = wx.TextCtrl(self, name="Chẩn đoán:")
         self.vnote = wx.TextCtrl(self, style=wx.TE_MULTILINE, name="Bệnh sử")
-        self.weight = WeightCtrl(self, name="Cân nặng (kg):")
+        self.weight = WeightCtrl(self, size=tsize(0.04), name="Cân nặng (kg):")
         self.get_weight_btn = GetWeightBtn(self)
         self.days = DaysCtrl(self, name="Số ngày cho toa:")
         self.updatequantitybtn = UpdateQuantityBtn(self)

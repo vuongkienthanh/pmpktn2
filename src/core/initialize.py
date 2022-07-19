@@ -12,10 +12,14 @@ background_color = wx.Colour(206, 219, 186)
 
 # some size
 window_size :tuple[int, int] = wx.DisplaySize()
-screen_w, screen_h = window_size
-left = round(screen_w *0.2)
-right = round(screen_w *0.6)
-popup_size = tuple(int(i) for i in (screen_w*0.4, screen_h/5, screen_h/5))
+w, h = window_size
+popup_size = tuple(int(i) for i in (w*0.5, h/5, h/5))
+
+def size(p):
+    return round(w*p)
+def tsize(p):
+    return (size(p), -1)
+
 
 # keycode
 # back, del, home, end, left,right

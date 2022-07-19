@@ -60,12 +60,12 @@ class State():
         self.mv.past_history.ChangeValue(p.past_history or '')
         self.mv.savebtn.SetLabel("Lưu")
         self.mv.savebtn.Enable()
-        self.mv.updatequantitybtn.Enable()
         self.mv.weight.Enable()
         self.mv.days.Enable()
         self.mv.recheck.Enable()
         self.mv.norecheck.Enable()
         self.mv.order_book.page0.use_sample_prescription_btn.Enable()
+        self.visit=None
         self.visitlist = self.mv.con.select_visits_by_patient_id(p.id, limit=5)
         if len(self.visitlist) > 0:
             self.mv.get_weight_btn.Enable()
@@ -97,7 +97,6 @@ class State():
         self.mv.past_history.Clear()
         self.mv.savebtn.SetLabel("Lưu")
         self.mv.savebtn.Disable()
-        self.mv.updatequantitybtn.Disable()
         self.mv.weight.Disable()
         self.mv.get_weight_btn.Disable()
         self.mv.days.Disable()
@@ -154,6 +153,7 @@ class State():
         self.mv.vnote.Clear()
         self.mv.weight.SetValue(0)
         self.mv.days.SetValue(self.mv.config['so_ngay_toa_ve_mac_dinh'])
+        self.mv.updatequantitybtn.Disable()
         self.mv.recheck.SetValue(self.mv.config['so_ngay_toa_ve_mac_dinh'])
         self.mv.follow.SetSelection(0)
         self.linedruglist = []

@@ -1,6 +1,6 @@
 from db.db_class import Warehouse
 from core import order_book
-from core.initialize import popup_size
+from core.initialize import popup_size, tsize
 import wx
 
 class DrugPopup(wx.ComboPopup):
@@ -43,6 +43,9 @@ class DrugPopup(wx.ComboPopup):
 
     def GetAdjustedSize(self, minWidth, prefHeight, maxHeight):
         return super().GetAdjustedSize(*popup_size)
+
+    def EnablePopupAnimation(self):
+        return False
 
     def fetch_list(self, s:str):
         s = s.casefold()
@@ -133,7 +136,7 @@ class DrugPopup(wx.ComboPopup):
 class DrugPicker(wx.ComboCtrl):
 
     def __init__(self, parent:'order_book.PrescriptionPage'):
-        super().__init__(parent)
+        super().__init__(parent,size=tsize(0.1), style=wx.TE_PROCESS_ENTER)
         self.parent = parent
         self.SetPopupControl(DrugPopup())
         self.Bind(wx.EVT_CHAR, self.onChar)
@@ -141,6 +144,7 @@ class DrugPicker(wx.ComboCtrl):
         self.SetHint("Enter để search thuốc")
 
     def onChar(self, e:wx.KeyEvent):
+        print(e.KeyCode)
         if e.KeyCode == wx.WXK_RETURN:
             self.Popup()
         else:

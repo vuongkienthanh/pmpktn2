@@ -20,6 +20,7 @@ class DaysCtrl(wx.SpinCtrl):
 
     def onSpin(self, e: wx.SpinEvent):
         self.mv.recheck.SetValue(e.GetPosition())
+        self.mv.updatequantitybtn.Enable()
 
 
 class RecheckCtrl(wx.SpinCtrl):

@@ -1,6 +1,6 @@
 from db.db_class import Warehouse
 from core import order_book
-from core.initialize import popup_size
+from core.initialize import popup_size, tsize
 import wx
 
 
@@ -134,7 +134,7 @@ class DrugPopup(wx.ComboPopup):
 class DrugPicker(wx.ComboCtrl):
 
     def __init__(self, parent: 'order_book.PrescriptionPage'):
-        super().__init__(parent)
+        super().__init__(parent, size=tsize(0.1))
         self.parent = parent
         self.SetPopupControl(DrugPopup())
         self.Bind(wx.EVT_CHAR, self.onChar)

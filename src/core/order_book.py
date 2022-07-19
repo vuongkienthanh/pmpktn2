@@ -1,3 +1,4 @@
+from core.initialize import tsize
 from core.order_book_widgets import *
 from core import mainview
 import wx

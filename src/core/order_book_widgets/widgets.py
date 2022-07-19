@@ -1,5 +1,5 @@
 from core import order_book
-from core.initialize import k_tab
+from core.initialize import k_tab, size, tsize
 import core.other_func as otf
 from core.generic import NumberTextCtrl, DoseTextCtrl
 from typing import Any
@@ -16,21 +16,24 @@ class DrugList(wx.ListCtrl):
         self.mv = parent.parent.mv
         self._list: list[dict[str, Any]] = []
         self.AppendColumn('STT')
-        self.AppendColumn('Thuốc')
-        self.AppendColumn('Số cữ')
-        self.AppendColumn('Liều')
-        self.AppendColumn('Tổng cộng')
-        self.AppendColumn('Cách dùng')
+        self.AppendColumn('Thuốc', width=size(0.1))
+        self.AppendColumn('Số cữ', width=size(0.03))
+        self.AppendColumn('Liều', width=size(0.03))
+        self.AppendColumn('Tổng cộng', width=size(0.05))
+        self.AppendColumn('Cách dùng', width=size(0.15))
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
+    
+    def clear(self):
+        self.DeleteAllItems()
+        self._list.clear()
 
     def build(self, lld: list[sqlite3.Row] | list[dict[str, Any]]):
         for item in lld:
             self.append(item)
 
     def rebuild(self, lld: list[sqlite3.Row] | list[dict[str, Any]]):
-        self.DeleteAllItems()
-        self._list.clear()
+        self.clear()
         self.build(lld)
 
     def append(self, item: dict[str, Any] | sqlite3.Row):
@@ -127,7 +130,7 @@ class DrugList(wx.ListCtrl):
 
 class Times(NumberTextCtrl):
     def __init__(self, parent: 'order_book.PrescriptionPage'):
-        super().__init__(parent)
+        super().__init__(parent, size=tsize(0.03))
         self.parent = parent
         self.SetHint('lần')
         self.Bind(wx.EVT_TEXT, self.onText)
@@ -140,7 +143,7 @@ class Times(NumberTextCtrl):
 
 class Dose(DoseTextCtrl):
     def __init__(self, parent: 'order_book.PrescriptionPage'):
-        super().__init__(parent)
+        super().__init__(parent, size=tsize(0.03))
         self.parent = parent
         self.SetHint('liều')
         self.Bind(wx.EVT_TEXT, self.onText)
@@ -154,7 +157,7 @@ class Dose(DoseTextCtrl):
 class Quantity(NumberTextCtrl):
 
     def __init__(self, parent: 'order_book.PrescriptionPage'):
-        super().__init__(parent)
+        super().__init__(parent, size=tsize(0.03))
         self.parent = parent
         self.SetHint('Enter')
 
@@ -175,7 +178,7 @@ class Quantity(NumberTextCtrl):
 
 class Note(wx.TextCtrl):
     def __init__(self, parent: 'order_book.PrescriptionPage'):
-        super().__init__(parent)
+        super().__init__(parent, style=wx.TE_PROCESS_ENTER)
         self.parent = parent
         self.Bind(wx.EVT_CHAR, self.onChar)
 
@@ -185,6 +188,7 @@ class Note(wx.TextCtrl):
                 self.parent.drug_list.upsert()
                 self.parent.parent.mv.state.warehouse = None
                 self.parent.parent.mv.price.FetchPrice()
+                self.parent.drug_picker.SetFocus()
         elif e.KeyCode == k_tab:
             pass
         else:
