@@ -33,7 +33,7 @@ class MyMenuBar(wx.MenuBar):
         editMenu = wx.Menu()
 
         menuPatient = wx.Menu()
-        menuPatient.Append(wx.ID_NEW, "Bệnh nhân mới")
+        menuPatient.Append(wx.ID_NEW, "Bệnh nhân mới\tCTRL+N")
         self.menuUpdatePatient: wx.MenuItem = menuPatient.Append(
             wx.ID_EDIT, "Cập nhật thông tin bệnh nhân\tCTRL+U")
         self.menuDeletePatient: wx.MenuItem = menuPatient.Append(
@@ -69,7 +69,7 @@ class MyMenuBar(wx.MenuBar):
         editMenu.AppendSubMenu(menuDrug, "Thuốc")
 
         editMenu.AppendSeparator()
-        editMenu.Append(wx.ID_OPEN, "Tìm bệnh nhân cũ")
+        editMenu.Append(wx.ID_OPEN, "Tìm bệnh nhân cũ\tCTRL+O")
 
         editMenu.AppendSeparator()
         self.menuPrint: wx.MenuItem = editMenu.Append(wx.ID_PRINT, "In")

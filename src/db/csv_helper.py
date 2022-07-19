@@ -7,7 +7,7 @@ from decimal import Decimal
 class CSVReader(csv.DictReader):
     def __init__(self, t: type[BASE], csvfilepath: str):
         self.t = t
-        self.csvfile = open(csvfilepath, 'r')
+        self.csvfile = open(csvfilepath, 'r', encoding='utf-8')
         self.fields = self.csvfile.readline().strip().split(',')
         self.csvfile.seek(0)
         super().__init__(self.csvfile)

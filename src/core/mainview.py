@@ -130,7 +130,7 @@ class MainView(wx.Frame):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.AddMany([
             (left_sizer, 4, wx.EXPAND | wx.ALL, 10),
-            (right_sizer, 6, wx.EXPAND | wx.ALL, 10)
+            (right_sizer, 4, wx.EXPAND | wx.ALL, 10)
         ])
         self.SetSizer(sizer)
 

@@ -16,11 +16,11 @@ class DrugList(wx.ListCtrl):
         self.mv = parent.parent.mv
         self._list: list[dict[str, Any]] = []
         self.AppendColumn('STT')
-        self.AppendColumn('Thuốc'.ljust(30), width=-2)
+        self.AppendColumn('Thuốc')
         self.AppendColumn('Số cữ')
         self.AppendColumn('Liều')
-        self.AppendColumn('Tổng cộng', width=-2)
-        self.AppendColumn('Cách dùng'.ljust(50), width=-2)
+        self.AppendColumn('Tổng cộng')
+        self.AppendColumn('Cách dùng')
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
 

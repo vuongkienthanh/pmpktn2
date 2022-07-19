@@ -3,7 +3,6 @@ from core import order_book
 from core.initialize import popup_size
 import wx
 
-
 class DrugPopup(wx.ComboPopup):
 
     def __init__(self):
@@ -45,9 +44,9 @@ class DrugPopup(wx.ComboPopup):
     def GetAdjustedSize(self, minWidth, prefHeight, maxHeight):
         return super().GetAdjustedSize(*popup_size)
 
-    def fetch_list(self, s: str):
+    def fetch_list(self, s:str):
         s = s.casefold()
-        cc: DrugPicker = self.GetComboCtrl()
+        cc :DrugPicker = self.GetComboCtrl()
         self._list = list(filter(
             lambda item: (s in item.name.casefold()) or (
                 s in item.element.casefold()),
@@ -80,8 +79,8 @@ class DrugPopup(wx.ComboPopup):
 
     def OnPopup(self):
         self.lc.DeleteAllItems()
-        cc: DrugPicker = self.GetComboCtrl()
-        s: str = cc.Value
+        cc : DrugPicker = self.GetComboCtrl()
+        s :str = cc.Value
         self.fetch_list(s.strip())
         self.build()
 
@@ -93,10 +92,10 @@ class DrugPopup(wx.ComboPopup):
 
     def OnLeftDown(self, e):
         self.Dismiss()
-        cc: DrugPicker = self.GetComboCtrl()
+        cc : DrugPicker = self.GetComboCtrl()
         cc.parent.parent.mv.state.warehouse = self._list[self.curitem]
 
-    def onChar(self, e: wx.KeyEvent):
+    def onChar(self, e:wx.KeyEvent):
         c = e.KeyCode
         if c == wx.WXK_DOWN:
             self.KeyDown()
@@ -127,13 +126,13 @@ class DrugPopup(wx.ComboPopup):
 
     def KeyESC(self):
         self.Dismiss()
-        cc: DrugPicker = self.GetComboCtrl()
+        cc : DrugPicker = self.GetComboCtrl()
         cc.parent.parent.mv.state.warehouse = None
 
 
 class DrugPicker(wx.ComboCtrl):
 
-    def __init__(self, parent: 'order_book.PrescriptionPage'):
+    def __init__(self, parent:'order_book.PrescriptionPage'):
         super().__init__(parent)
         self.parent = parent
         self.SetPopupControl(DrugPopup())
@@ -141,13 +140,13 @@ class DrugPicker(wx.ComboCtrl):
         self.Bind(wx.EVT_TEXT, self.onText)
         self.SetHint("Enter để search thuốc")
 
-    def onChar(self, e: wx.KeyEvent):
+    def onChar(self, e:wx.KeyEvent):
         if e.KeyCode == wx.WXK_RETURN:
             self.Popup()
         else:
             e.Skip()
 
-    def onText(self, e: wx.CommandEvent):
+    def onText(self, e:wx.CommandEvent):
         if self.GetValue() == '':
             self.parent.parent.mv.state.warehouse = None
         else:

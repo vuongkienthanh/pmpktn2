@@ -34,10 +34,10 @@ class PatientListCtrl(wx.ListCtrl):
         super().__init__(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         self.parent = parent
         self.mv = parent.mv
-        self.AppendColumn('Mã BN', width=-1)
-        self.AppendColumn('Họ tên'.ljust(40), width=-2)
-        self.AppendColumn('Giới', width=-2)
-        self.AppendColumn('Ngày sinh'.ljust(10), width=-2)
+        self.AppendColumn('Mã BN')
+        self.AppendColumn('Họ tên')
+        self.AppendColumn('Giới')
+        self.AppendColumn('Ngày sinh')
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick)
@@ -64,7 +64,7 @@ class QueuingPatientList(PatientListCtrl):
 
     def __init__(self, parent: PatientBook):
         super().__init__(parent)
-        self.AppendColumn('Giờ đăng ký'.ljust(20), width=-2)
+        self.AppendColumn('Giờ đăng ký')
 
     def append_ui(self, row: sqlite3.Row):
         self.Append([
@@ -89,7 +89,7 @@ class TodayPatientList(PatientListCtrl):
 
     def __init__(self, parent: PatientBook):
         super().__init__(parent)
-        self.AppendColumn('Giờ khám'.ljust(20), width=-2)
+        self.AppendColumn('Giờ khám')
 
     def append_ui(self, row: sqlite3.Row):
         self.Append([
@@ -118,9 +118,9 @@ class VisitList(wx.ListCtrl):
     def __init__(self, parent: 'mainview.MainView'):
         super().__init__(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         self.mv = parent
-        self.AppendColumn('Mã lượt khám', width=-2)
-        self.AppendColumn('Ngày giờ khám'.ljust(16), width=-2)
-        self.AppendColumn('Chẩn đoán'.ljust(40), width=-2)
+        self.AppendColumn('Mã lượt khám')
+        self.AppendColumn('Ngày giờ khám')
+        self.AppendColumn('Chẩn đoán')
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
 

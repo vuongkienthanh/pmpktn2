@@ -24,7 +24,7 @@ class WarehouseSetupDialog(wx.Dialog):
             "Giá mua", "Giá bán", "Đơn vị bán", "Ngày hết hạn",
             "Xuất xứ", "Ghi chú".ljust(60)
         ]:
-            self.lc.AppendColumn(f, width=-2)
+            self.lc.AppendColumn(f)
         self.newbtn = wx.Button(self, label="Thêm mới")
         self.editbtn = wx.Button(self, label="Cập nhật")
         self.delbtn = wx.Button(self, label="Xóa")
