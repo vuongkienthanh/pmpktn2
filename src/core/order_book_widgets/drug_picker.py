@@ -1,6 +1,6 @@
 from db.db_class import Warehouse
 from core import order_book
-from core.initialize import popup_size, tsize
+from core.initialize import size
 import wx
 
 
@@ -15,13 +15,13 @@ class DrugPopup(wx.ComboPopup):
             parent,
             style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.SIMPLE_BORDER
         )
-        self.lc.AppendColumn('Thuốc')
-        self.lc.AppendColumn('Thành phần')
-        self.lc.AppendColumn('Số lượng')
-        self.lc.AppendColumn('Đơn vị')
-        self.lc.AppendColumn('Đơn giá')
-        self.lc.AppendColumn('Cách dùng')
-        self.lc.AppendColumn('Hạn sử dụng')
+        self.lc.AppendColumn('Thuốc', width=size(0.08))
+        self.lc.AppendColumn('Thành phần', width=size(0.08))
+        self.lc.AppendColumn('Số lượng', width=size(0.035))
+        self.lc.AppendColumn('Đơn vị', width=size(0.03))
+        self.lc.AppendColumn('Đơn giá', width=size(0.03))
+        self.lc.AppendColumn('Cách dùng', width=size(0.04))
+        self.lc.AppendColumn('Hạn sử dụng', width=size(0.055))
         self.lc.Bind(wx.EVT_MOTION, self.OnMotion)
         self.lc.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
         self.lc.Bind(wx.EVT_CHAR, self.onChar)
@@ -43,7 +43,7 @@ class DrugPopup(wx.ComboPopup):
         return ""
 
     def GetAdjustedSize(self, minWidth, prefHeight, maxHeight):
-        return super().GetAdjustedSize(*popup_size)
+        return super().GetAdjustedSize(size(0.4),-1,-1)
 
     def fetch_list(self, s: str):
         s = s.casefold()
@@ -134,12 +134,12 @@ class DrugPopup(wx.ComboPopup):
 class DrugPicker(wx.ComboCtrl):
 
     def __init__(self, parent: 'order_book.PrescriptionPage'):
-        super().__init__(parent, size=tsize(0.1))
+        super().__init__(parent,style=wx.TE_PROCESS_ENTER)
         self.parent = parent
         self.SetPopupControl(DrugPopup())
         self.Bind(wx.EVT_CHAR, self.onChar)
         self.Bind(wx.EVT_TEXT, self.onText)
-        self.SetHint("Enter để search thuốc")
+        # self.SetHint("Enter để search thuốc")
 
     def onChar(self, e: wx.KeyEvent):
         if e.KeyCode == wx.WXK_RETURN:

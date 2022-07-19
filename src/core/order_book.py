@@ -30,9 +30,9 @@ class PrescriptionPage(wx.Panel):
         self.usage_unit = wx.StaticText(self, label='{Đơn vị}')
         self.sale_unit = wx.StaticText(self, label='{Đơn vị}')
         self.note = Note(self)
-        self.drug_list = DrugList(self)
         self.save_drug_btn = SaveDrugButton(self)
         self.del_drug_btn = DelDrugButton(self)
+        self.drug_list = DrugList(self)
         self.reuse_druglist_btn = ReuseDrugListButton(self)
         self.use_sample_prescription_btn = UseSamplePrescriptionBtn(self)
 
@@ -54,13 +54,13 @@ class PrescriptionPage(wx.Panel):
             static(u"\u21D2 Tổng cộng:"),
             widget(self.quantity),
             (self.sale_unit, 0, wx.ALIGN_CENTER | wx.RIGHT, 2),
-            widget(self.save_drug_btn),
-            widget(self.del_drug_btn)
         ])
         usage_row = wx.BoxSizer(wx.HORIZONTAL)
         usage_row.AddMany([
             static('Cách dùng:'),
-            widget(self.note,1)
+            widget(self.note,1),
+            widget(self.save_drug_btn),
+            widget(self.del_drug_btn)
         ])
         btn_row = wx.BoxSizer(wx.HORIZONTAL)
         btn_row.AddMany([

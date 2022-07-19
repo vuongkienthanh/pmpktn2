@@ -11,9 +11,9 @@ background_color = wx.Colour(206, 219, 186)
 
 
 # some size
-window_size :tuple[int, int] = wx.DisplaySize()
-w, h = window_size
-popup_size = tuple(int(i) for i in (w*0.5, h/5, h/5))
+w :tuple[int, int] = wx.DisplaySize()[0]
+
+
 
 def size(p):
     return round(w*p)

@@ -45,7 +45,7 @@ class MainView(wx.Frame):
             self, style=wx.TE_MULTILINE, name="Bệnh nền, dị ứng:")
         self.diagnosis = wx.TextCtrl(self, name="Chẩn đoán:")
         self.vnote = wx.TextCtrl(self, style=wx.TE_MULTILINE, name="Bệnh sử")
-        self.weight = WeightCtrl(self, size=tsize(0.04), name="Cân nặng (kg):")
+        self.weight = WeightCtrl(self, name="Cân nặng (kg):")
         self.get_weight_btn = GetWeightBtn(self)
         self.days = DaysCtrl(self, name="Số ngày cho toa:")
         self.updatequantitybtn = UpdateQuantityBtn(self)

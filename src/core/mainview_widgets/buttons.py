@@ -70,6 +70,7 @@ class UpdateQuantityBtn(wx.Button):
             drug_list.SetItem(
                 idx, 4, f"{q} {item['sale_unit'] or item['usage_unit']}")
         self.mv.price.FetchPrice()
+        self.Disable()
 
 
 class NewVisitBtn(wx.Button):

@@ -63,10 +63,6 @@ class MyMenuBar(wx.MenuBar):
         self.menuDeleteQueueList.Enable(False)
         editMenu.AppendSubMenu(menuQueueList, "Danh sách chờ")
 
-        menuDrug = wx.Menu()
-        menuUpdateQuantity: wx.MenuItem = menuDrug.Append(
-            wx.ID_ANY, "Cập nhật lại số lượng thuốc trong toa theo ngày")
-        editMenu.AppendSubMenu(menuDrug, "Thuốc")
 
         editMenu.AppendSeparator()
         editMenu.Append(wx.ID_OPEN, "Tìm bệnh nhân cũ\tCTRL+O")
@@ -109,7 +105,6 @@ class MyMenuBar(wx.MenuBar):
         self.Bind(wx.EVT_MENU, self.onDeleteVisit, self.menuDeleteVisit)
         self.Bind(wx.EVT_MENU, self.onDeleteQueueList,
                   self.menuDeleteQueueList)
-        self.Bind(wx.EVT_MENU, self.onUpdateQuantity, menuUpdateQuantity)
         self.Bind(wx.EVT_MENU, self.onPrint, self.menuPrint)
         self.Bind(wx.EVT_MENU, self.onPreview, self.menuPreview)
         self.Bind(wx.EVT_MENU, self.onWarehouseSetup, menuWarehouseSetup)
@@ -199,9 +194,6 @@ class MyMenuBar(wx.MenuBar):
             except Exception as error:
                 wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
 
-    def onUpdateQuantity(self, e):
-        mv: 'mainview.MainView' = self.GetFrame()
-        mv.updatequantitybtn.update_quantity()
 
     def onPrint(self, e):
         printout = PrintOut(self.Parent)

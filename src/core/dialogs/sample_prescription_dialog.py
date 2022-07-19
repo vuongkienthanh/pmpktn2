@@ -62,7 +62,7 @@ class SampleList(wx.ListCtrl):
         super().__init__(parent, style=wx.LC_SINGLE_SEL |
                          wx.LC_REPORT | wx.LC_NO_HEADER, name=name)
         self.parent = parent
-        self.AppendColumn("name")
+        self.AppendColumn("name".ljust(150), width=-2)
         self.DeleteAllItems()
         for sp in self.parent.mv.state.sampleprescriptionlist:
             self.append(sp)
