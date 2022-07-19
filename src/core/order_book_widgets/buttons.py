@@ -5,6 +5,7 @@ from core.dialogs.sample_prescription_dialog import SampleDialog
 from core.other_func import get_usage_note_str, calc_quantity
 import wx
 
+
 class SaveDrugButton(wx.BitmapButton):
     def __init__(self, parent: 'order_book.PrescriptionPage'):
         super().__init__(parent,
@@ -20,7 +21,7 @@ class SaveDrugButton(wx.BitmapButton):
 
 
 class DelDrugButton(wx.BitmapButton):
-    def __init__(self, parent:'order_book.PrescriptionPage'):
+    def __init__(self, parent: 'order_book.PrescriptionPage'):
         super().__init__(parent,
                          bitmap=wx.Bitmap(minus_bm))
         self.parent = parent
@@ -41,7 +42,7 @@ class ReuseDrugListButton(wx.Button):
         self.Disable()
         self.Bind(wx.EVT_BUTTON, self.onClick)
 
-    def onClick(self, e:wx.CommandEvent):
+    def onClick(self, e: wx.CommandEvent):
         lld = self.parent.drug_list._list.copy()
         weight = self.mv.weight.GetWeight()
         self.mv.state.visit = None
@@ -61,8 +62,8 @@ class UseSamplePrescriptionBtn(wx.Button):
     def onClick(self, e: wx.CommandEvent):
         dlg = SampleDialog(self.mv)
         if dlg.ShowModal() == wx.ID_OK:
-            idx :int =dlg.samplelist.GetFirstSelected()
-            if idx >=0:
+            idx: int = dlg.samplelist.GetFirstSelected()
+            if idx >= 0:
                 self.mv.order_book.page0.drug_list.DeleteAllItems()
                 sp = self.mv.state.sampleprescriptionlist[idx]
                 llsp = self.mv.con.execute(f"""
@@ -76,19 +77,19 @@ class UseSamplePrescriptionBtn(wx.Button):
                 """).fetchall()
                 for lsp in llsp:
                     self.mv.order_book.page0.drug_list.append({
-                        'drug_id' : lsp['drug_id'],
-                        'times' : lsp['times'],
-                        'dose':lsp['dose'],
-                        'quantity': calc_quantity(lsp['times'], lsp['dose'], self.mv.days.Value,lsp['sale_unit'],self.mv.config['thuoc_ban_mot_don_vi']),
+                        'drug_id': lsp['drug_id'],
+                        'times': lsp['times'],
+                        'dose': lsp['dose'],
+                        'quantity': calc_quantity(lsp['times'], lsp['dose'], self.mv.days.Value, lsp['sale_unit'], self.mv.config['thuoc_ban_mot_don_vi']),
                         'name': lsp['name'],
-                        'note':get_usage_note_str(lsp['usage'], lsp['times'], lsp['dose'], lsp['usage_unit']),
+                        'note': get_usage_note_str(lsp['usage'], lsp['times'], lsp['dose'], lsp['usage_unit']),
                         'usage': lsp['usage'],
                         'usage_unit': lsp['usage_unit'],
                         'sale_unit': lsp['sale_unit'],
-                        'sale_price':lsp['sale_price']
+                        'sale_price': lsp['sale_price']
                     })
                     self.mv.price.FetchPrice()
-# item = {      
+# item = {
 #             'drug_id': wh.id,
 #             'name': wh.name,
 #             'times': int(self.parent.times.Value.strip()),

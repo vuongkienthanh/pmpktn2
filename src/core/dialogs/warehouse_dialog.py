@@ -8,12 +8,10 @@ import wx
 class WarehouseSetupDialog(wx.Dialog):
     def __init__(self, parent: 'mainview.MainView'):
         """
-        `locale`: make calendar display in vietnamese
         `_list`: internal list to keep track of Warehouse in dialog
         """
         super().__init__(parent=parent, title="Kho thuốc",
                          style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
-        self.locale = wx.Locale(wx.LANGUAGE_VIETNAMESE)
         self.mv = parent
         self._list: list[Warehouse] = []
 
@@ -65,7 +63,6 @@ class WarehouseSetupDialog(wx.Dialog):
         self.delbtn.Bind(wx.EVT_BUTTON, self.onDelete)
         self.Maximize()
         self.build()
-        self.Bind(wx.EVT_CLOSE, self.onClose)
 
     def clear(self):
         """
@@ -126,10 +123,6 @@ class WarehouseSetupDialog(wx.Dialog):
     def check_min_quantity(self, wh: Warehouse, idx: int):
         if wh.quantity <= self.mv.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"]:
             self.lc.SetItemTextColour(idx, wx.Colour(252, 3, 57))
-
-    def onClose(self, e: wx.CloseEvent):
-        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
-        e.Skip()
 
     def onSearch(self, e: wx.CommandEvent):
         self.rebuild(self.get_search_value())

@@ -7,8 +7,6 @@ import wx
 import wx.adv as adv
 
 
-
-
 class BasePatientDialog(wx.Dialog):
     def __init__(self, parent: 'mainview.MainView', title):
         super().__init__(
@@ -16,7 +14,6 @@ class BasePatientDialog(wx.Dialog):
             title=title,
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
         )
-        self.locale = wx.Locale(wx.LANGUAGE_VIETNAMESE)
         self.mv = parent
 
         self.name = wx.TextCtrl(self, size=(300, -1), name="Họ tên")
@@ -46,7 +43,6 @@ class BasePatientDialog(wx.Dialog):
         self.birthdate_text.Bind(wx.EVT_TEXT, self.onBirthdateText)
         self.birthdate.Bind(adv.EVT_CALENDAR_SEL_CHANGED, self.onBirthdate)
         self.okbtn.Bind(wx.EVT_BUTTON, self.onOkBtn)
-        self.Bind(wx.EVT_CLOSE, self.onClose)
 
     def _setSizer(self):
 
@@ -95,10 +91,6 @@ class BasePatientDialog(wx.Dialog):
             return True
 
     def onOkBtn(self, e: wx.CommandEvent) -> None: ...
-
-    def onClose(self, e: wx.CloseEvent):
-        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
-        e.Skip()
 
     def onBirthdateText(self, e: wx.CommandEvent):
         s = e.GetString()
@@ -152,7 +144,6 @@ class NewPatientDialog(BasePatientDialog):
                 except sqlite3.IntegrityError as error:
                     wx.MessageBox(
                         f"Đã có tên trong danh sách chờ.\n{error}", "Lỗi")
-                self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
                 e.Skip()
             except Exception as error:
                 wx.MessageBox(
@@ -165,13 +156,13 @@ class EditPatientDialog(BasePatientDialog):
         super().__init__(parent, title="Cập nhật thông tin bệnh nhân")
         self.mv = parent
         self.build(self.get_patient())
-    
-    def get_patient(self)->Patient:
+
+    def get_patient(self) -> Patient:
         p = self.mv.state.patient
         assert p is not None
         return p
 
-    def build(self, p:Patient):
+    def build(self, p: Patient):
         self.name.ChangeValue(p.name)
         self.gender.SetGender(p.gender)
         self.birthdate.SetDate(p.birthdate)

@@ -49,7 +49,7 @@ class SampleDialog(wx.Dialog):
         sizer.AddMany([
             *widget(self.samplelist, 1),
             (btn_row1, 0, wx.EXPAND),
-            *widget(self.itemlist,1),
+            *widget(self.itemlist, 1),
             (item_row, 0, wx.EXPAND),
             (btn_row2, 0, wx.EXPAND),
             (self.CreateStdDialogButtonSizer(wx.OK), 0, wx.EXPAND | wx.ALL, 5)
@@ -58,8 +58,9 @@ class SampleDialog(wx.Dialog):
 
 
 class SampleList(wx.ListCtrl):
-    def __init__(self, parent: SampleDialog, name:str):
-        super().__init__(parent, style=wx.LC_SINGLE_SEL | wx.LC_REPORT | wx.LC_NO_HEADER, name=name)
+    def __init__(self, parent: SampleDialog, name: str):
+        super().__init__(parent, style=wx.LC_SINGLE_SEL |
+                         wx.LC_REPORT | wx.LC_NO_HEADER, name=name)
         self.parent = parent
         self.AppendColumn("name".ljust(100), width=-2)
         self.DeleteAllItems()
@@ -80,7 +81,7 @@ class SampleList(wx.ListCtrl):
         sp = self.parent.mv.state.sampleprescriptionlist[idx]
         self.parent.itemlist.build(sp.id)
 
-    def onDeselect(self, e:wx.ListEvent):
+    def onDeselect(self, e: wx.ListEvent):
         self.parent.minussamplebtn.Disable()
         self.parent.picker.Disable()
         self.parent.dose.Disable()
@@ -116,7 +117,7 @@ class MinusSampleButton(wx.Button):
         self.Bind(wx.EVT_BUTTON, self.onClick)
 
     def onClick(self, e) -> None:
-        idx:int = self.parent.samplelist.GetFirstSelected()
+        idx: int = self.parent.samplelist.GetFirstSelected()
         assert idx >= 0
         sp = self.parent.mv.state.sampleprescriptionlist[idx]
         try:
@@ -143,7 +144,7 @@ class Picker(wx.Choice):
 
 
 class Dose(DoseTextCtrl):
-    def __init__(self, parent: SampleDialog, name:str):
+    def __init__(self, parent: SampleDialog, name: str):
         super().__init__(parent, name=name)
         self.SetHint('liều')
         self.Disable()
@@ -151,7 +152,7 @@ class Dose(DoseTextCtrl):
 
 
 class Times(NumberTextCtrl):
-    def __init__(self, parent: SampleDialog, name:str):
+    def __init__(self, parent: SampleDialog, name: str):
         super().__init__(parent, name=name)
         self.SetHint('lần')
         self.Disable()
@@ -173,15 +174,15 @@ class AddDrugButton(wx.Button):
         else:
             self.Disable()
 
-    def onClick(self, e:wx.CommandEvent):
+    def onClick(self, e: wx.CommandEvent):
         idx: int = self.parent.picker.GetCurrentSelection()
         wh = self.parent.mv.state.warehouselist[idx]
         idx: int = self.parent.samplelist.GetFirstSelected()
         sp = self.parent.mv.state.sampleprescriptionlist[idx]
 
-        times_str :str=  self.parent.times.GetValue()
+        times_str: str = self.parent.times.GetValue()
         times = int(times_str.strip())
-        dose_str :str = self.parent.dose.GetValue()
+        dose_str: str = self.parent.dose.GetValue()
         dose = dose_str.strip()
         lsp = {
             'drug_id': wh.id,
@@ -214,15 +215,15 @@ class MinusDrugButton(wx.Button):
         self.Disable()
         self.Bind(wx.EVT_BUTTON, self.onClick)
 
-    def onClick(self, e:wx.CommandEvent):
-        idx :int = self.parent.itemlist.GetFirstSelected()
+    def onClick(self, e: wx.CommandEvent):
+        idx: int = self.parent.itemlist.GetFirstSelected()
         lsp_id = self.parent.itemlist.pop(idx)
         self.parent.mv.con.delete(LineSamplePrescription, lsp_id)
         self.Disable()
 
 
 class ItemList(wx.ListCtrl):
-    def __init__(self, parent: SampleDialog, name:str):
+    def __init__(self, parent: SampleDialog, name: str):
         super().__init__(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL, name=name)
         self.parent = parent
         self._list_id: list[int] = []
@@ -248,18 +249,18 @@ class ItemList(wx.ListCtrl):
         """).fetchall():
             self.append(lsp)
 
-    def append(self, lsp: sqlite3.Row| dict[str,Any]):
+    def append(self, lsp: sqlite3.Row | dict[str, Any]):
         self.Append((lsp['name'], lsp['element'], lsp['times'], lsp['dose']))
         self._list_id.append(lsp['id'])
 
-    def pop(self, idx:int) ->int:
-        assert idx >=0
+    def pop(self, idx: int) -> int:
+        assert idx >= 0
         self.DeleteItem(idx)
         lsp_id = self._list_id.pop(idx)
         return lsp_id
 
-    def onSelect(self, e:wx.ListEvent):
+    def onSelect(self, e: wx.ListEvent):
         self.parent.minusdrugbtn.Enable()
 
-    def onDeselect(self, e:wx.ListEvent):
+    def onDeselect(self, e: wx.ListEvent):
         self.parent.minusdrugbtn.Disable()

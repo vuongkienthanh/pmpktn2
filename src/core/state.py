@@ -6,6 +6,7 @@ import core.other_func as otf
 import sqlite3
 import wx
 
+
 class State():
     '''Manager data, appearance and button state'''
 
@@ -66,16 +67,16 @@ class State():
         self.mv.norecheck.Enable()
         self.mv.order_book.page0.use_sample_prescription_btn.Enable()
         self.visitlist = self.mv.con.select_visits_by_patient_id(p.id, limit=5)
-        if len(self.visitlist) >0:
+        if len(self.visitlist) > 0:
             self.mv.get_weight_btn.Enable()
         else:
             self.mv.get_weight_btn.Disable()
 
-        idx :int = self.mv.patient_book.Selection
+        idx: int = self.mv.patient_book.Selection
         page: wx.ListCtrl = self.mv.patient_book.GetPage(idx)
 
         from core.menubar import MyMenuBar
-        menubar : MyMenuBar = self.mv.GetMenuBar()
+        menubar: MyMenuBar = self.mv.GetMenuBar()
         menubar.menuUpdatePatient.Enable()
         menubar.menuDeletePatient.Enable()
         menubar.menuInsertVisit.Enable()
@@ -107,7 +108,7 @@ class State():
         self.visitlist = []
 
         from core.menubar import MyMenuBar
-        menubar : MyMenuBar = self.mv.GetMenuBar()
+        menubar: MyMenuBar = self.mv.GetMenuBar()
         menubar.menuUpdatePatient.Enable(False)
         menubar.menuDeletePatient.Enable(False)
         menubar.menuInsertVisit.Enable(False)
@@ -180,7 +181,7 @@ class State():
         else:
             self.onWarehouseDeselect()
 
-    def onWarehouseSelect(self, wh:Warehouse) -> None:
+    def onWarehouseSelect(self, wh: Warehouse) -> None:
         pg = self.mv.order_book.page0
         pg.drug_picker.SetValue(wh.name)
         pg.usage.SetLabel(wh.usage)
@@ -222,7 +223,7 @@ class State():
         return self._queuelist
 
     @queuelist.setter
-    def queuelist(self , ql: list[sqlite3.Row]):
+    def queuelist(self, ql: list[sqlite3.Row]):
         self._queuelist = ql
         self.mv.patient_book.page0.rebuild(ql)
 
@@ -231,7 +232,7 @@ class State():
         return self._todaylist
 
     @todaylist.setter
-    def todaylist(self , tdl: list[sqlite3.Row]):
+    def todaylist(self, tdl: list[sqlite3.Row]):
         self._todaylist = tdl
         self.mv.patient_book.page1.rebuild(tdl)
 

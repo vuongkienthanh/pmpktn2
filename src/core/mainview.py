@@ -18,7 +18,7 @@ from typing import Any
 
 class MainView(wx.Frame):
 
-    def __init__(self, con: 'db_func.Connection', config: dict[str, Any], sample:bool=False):
+    def __init__(self, con: 'db_func.Connection', config: dict[str, Any], sample: bool = False):
         super().__init__(
             parent=None,
             title='PHẦN MỀM PHÒNG KHÁM TẠI NHÀ',

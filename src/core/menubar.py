@@ -16,6 +16,7 @@ import os
 import sqlite3
 import json
 
+
 class MyMenuBar(wx.MenuBar):
 
     def __init__(self):
@@ -144,7 +145,7 @@ class MyMenuBar(wx.MenuBar):
             page.EnsureVisible(idx)
 
     def onDeletePatient(self, e):
-        if wx.MessageBox("Xác nhận?", "Xóa bệnh nhân", style=wx.YES_NO|wx.NO_DEFAULT|wx.CENTRE) == wx.YES:
+        if wx.MessageBox("Xác nhận?", "Xóa bệnh nhân", style=wx.YES_NO | wx.NO_DEFAULT | wx.CENTRE) == wx.YES:
             mv: 'mainview.MainView' = self.GetFrame()
             p = mv.state.patient
             assert p is not None
@@ -170,7 +171,7 @@ class MyMenuBar(wx.MenuBar):
         mv.savebtn.update_visit()
 
     def onDeleteVisit(self, e):
-        if wx.MessageBox("Xác nhận?", "Xóa lượt khám", style=wx.YES_NO|wx.NO_DEFAULT|wx.CENTRE) == wx.YES:
+        if wx.MessageBox("Xác nhận?", "Xóa lượt khám", style=wx.YES_NO | wx.NO_DEFAULT | wx.CENTRE) == wx.YES:
             mv: 'mainview.MainView' = self.GetFrame()
             v = mv.state.visit
             p = mv.state.patient
@@ -179,13 +180,14 @@ class MyMenuBar(wx.MenuBar):
             try:
                 mv.con.delete(Visit, v.id)
                 wx.MessageBox("Xóa thành công", "OK")
-                mv.state.visitlist = mv.con.select_visits_by_patient_id(p.id, limit=5)
+                mv.state.visitlist = mv.con.select_visits_by_patient_id(
+                    p.id, limit=5)
                 mv.state.visit = None
             except sqlite3.Error as error:
                 wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
 
     def onDeleteQueueList(self, e):
-        if wx.MessageBox("Xác nhận?", "Xóa lượt chờ khám", style=wx.YES_NO|wx.NO_DEFAULT|wx.CENTRE) == wx.YES:
+        if wx.MessageBox("Xác nhận?", "Xóa lượt chờ khám", style=wx.YES_NO | wx.NO_DEFAULT | wx.CENTRE) == wx.YES:
             mv: 'mainview.MainView' = self.GetFrame()
             p = mv.state.patient
             assert p is not None
@@ -248,7 +250,6 @@ class MyMenuBar(wx.MenuBar):
                 break
             except json.JSONDecodeError as error:
                 wx.MessageBox(f"Lỗi JSON\n{error}", "Lỗi")
-
 
     def onResetSetting(self, e):
         if wx.MessageBox(

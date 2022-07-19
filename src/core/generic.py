@@ -6,6 +6,7 @@ import wx.adv
 import datetime as dt
 from decimal import Decimal
 
+
 class GenderChoice(wx.Choice):
     def __init__(self, parent: wx.Window, **kwargs):
         super().__init__(parent, choices=[
@@ -20,6 +21,7 @@ class GenderChoice(wx.Choice):
     def SetGender(self, gender: Gender):
         self.SetSelection(gender.value)
 
+
 class WeightCtrl(wx.SpinCtrlDouble):
     def __init__(self, parent: wx.Window, **kwargs):
         super().__init__(parent, **kwargs)
@@ -31,6 +33,7 @@ class WeightCtrl(wx.SpinCtrlDouble):
 
     def SetWeight(self, value: Decimal | int):
         super().SetValue(str(value))
+
 
 class DatePicker(wx.adv.CalendarCtrl):
     """Calendar

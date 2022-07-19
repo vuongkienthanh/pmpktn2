@@ -91,7 +91,7 @@ class Connection():
     def __exit__(self, exc_type, exc_value, exc_traceback):
         return self.sqlcon.__exit__(exc_type, exc_value, exc_traceback)
 
-    def execute(self, sql,*parameters):
+    def execute(self, sql, *parameters):
         return self.sqlcon.execute(sql, *parameters)
 
     def insert(self, t: type[BASE], base: dict) -> int | None:
@@ -120,7 +120,6 @@ class Connection():
         ).fetchall()
         return [t.parse(row) for row in rows]
 
-
     def delete(self, t: type[BASE], id: int) -> int | None:
         with self.sqlcon as con:
             return con.execute(
@@ -142,7 +141,6 @@ class Connection():
 #########################################################################
 #########################################################################
 #########################################################################
-
 
     def select_visits_by_patient_id(self, pid: int, limit: int = -1) -> list[sqlite3.Row]:
         query = f"""
