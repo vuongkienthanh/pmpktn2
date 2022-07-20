@@ -91,7 +91,7 @@ class SaveBtn(wx.Button):
     """Change between insert/update base on visit selecting"""
 
     def __init__(self, parent: "mv.MainView"):
-        super().__init__(parent, label="Lưu")
+        super().__init__(parent, id=wx.ID_SAVE, label="Lưu")
         self.mv = parent
         self.Disable()
         self.Bind(wx.EVT_BUTTON, self.onClick)

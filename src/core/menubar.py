@@ -1,3 +1,4 @@
+from re import S
 import subprocess
 from path_init import SRC_DIR, CONFIG_PATH
 from db.db_class import *
@@ -46,15 +47,17 @@ class MyMenuBar(wx.MenuBar):
         self.menuNewVisit: wx.MenuItem = menuVisit.Append(
             wx.ID_ANY, "Lượt khám mới")
         self.menuInsertVisit: wx.MenuItem = menuVisit.Append(
-            wx.ID_ANY, "Lưu lượt khám")
+            wx.ID_ANY, "Lưu lượt khám\tCTRL+S")
         self.menuUpdateVisit: wx.MenuItem = menuVisit.Append(
-            wx.ID_ANY, "Cập nhật lượt khám")
+            wx.ID_ANY, "Cập nhật lượt khám\tCTRL+S")
         self.menuDeleteVisit: wx.MenuItem = menuVisit.Append(
             wx.ID_ANY, "Xóa lượt khám cũ")
+
         self.menuNewVisit.Enable(False)
         self.menuInsertVisit.Enable(False)
         self.menuUpdateVisit.Enable(False)
         self.menuDeleteVisit.Enable(False)
+
         editMenu.AppendSubMenu(menuVisit, "Lượt khám")
 
         menuQueueList = wx.Menu()
@@ -105,8 +108,8 @@ class MyMenuBar(wx.MenuBar):
         self.Bind(wx.EVT_MENU, self.onDeleteVisit, self.menuDeleteVisit)
         self.Bind(wx.EVT_MENU, self.onDeleteQueueList,
                   self.menuDeleteQueueList)
-        self.Bind(wx.EVT_MENU, self.onPrint, self.menuPrint)
-        self.Bind(wx.EVT_MENU, self.onPreview, self.menuPreview)
+        self.Bind(wx.EVT_MENU, self.onPrint, id=wx.ID_PRINT)
+        self.Bind(wx.EVT_MENU, self.onPreview, id=wx.ID_PREVIEW)
         self.Bind(wx.EVT_MENU, self.onWarehouseSetup, menuWarehouseSetup)
         self.Bind(wx.EVT_MENU, self.onSampleSetup, menuSampleSetup)
         self.Bind(wx.EVT_MENU, self.onSetup, menuSetup)

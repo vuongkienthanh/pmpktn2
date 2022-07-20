@@ -1,5 +1,6 @@
 import core.other_func as otf
 from core import mainview as mv
+from core.initialize import print_mm, preview_mm, scale
 import textwrap as tw
 import wx
 
@@ -51,14 +52,16 @@ class PrintOut(wx.Printout):
     def OnPrintPage(self, page):
         dc: wx.DC = self.GetDC()
         if self.preview:
-            dc.SetMapMode(wx.MM_LOMETRIC)
+            dc.SetMapMode(preview_mm)
+        else:
+            dc.SetMapMode(print_mm)
 
         state = self.mv.state
         p = state.patient
         assert p is not None
 
         # fonts
-        title = wx.Font(wx.FontInfo(48).Bold())
+        title = wx.Font(wx.FontInfo(48*scale).Bold())
         info = wx.Font(wx.FontInfo(38))
         info_italic = wx.Font(wx.FontInfo(38).Italic())
         list_num = wx.Font(wx.FontInfo(38).Bold())

@@ -9,7 +9,6 @@ import os
 import sys
 import json
 from typing import Any
-import locale
 
 
 class App(wx.App):
@@ -17,7 +16,6 @@ class App(wx.App):
         super().__init__()
 
         config = self.get_config()
-        locale.setlocale(locale.LC_TIME, "vi_VN.utf-8")
         from core.mainview import MainView
         if sample:
             # con = dbf.Connection('test.db')

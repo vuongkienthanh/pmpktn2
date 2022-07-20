@@ -1,6 +1,7 @@
 from db.db_class import *
 from core import mainview
 import core.other_func as otf
+from core import menubar
 
 
 import sqlite3
@@ -75,13 +76,10 @@ class State():
         idx: int = self.mv.patient_book.Selection
         page: wx.ListCtrl = self.mv.patient_book.GetPage(idx)
 
-        from core.menubar import MyMenuBar
-        menubar: MyMenuBar = self.mv.GetMenuBar()
+        menubar: 'menubar.MyMenuBar' = self.mv.GetMenuBar()
         menubar.menuUpdatePatient.Enable()
         menubar.menuDeletePatient.Enable()
         menubar.menuInsertVisit.Enable()
-        menubar.menuPrint.Enable()
-        menubar.menuPreview.Enable()
         if idx == 0:
             menubar.menuDeleteQueueList.Enable()
 
@@ -106,8 +104,7 @@ class State():
         self.visit = None
         self.visitlist = []
 
-        from core.menubar import MyMenuBar
-        menubar: MyMenuBar = self.mv.GetMenuBar()
+        menubar: "menubar.MyMenuBar" = self.mv.GetMenuBar()
         menubar.menuUpdatePatient.Enable(False)
         menubar.menuDeletePatient.Enable(False)
         menubar.menuInsertVisit.Enable(False)
@@ -140,12 +137,15 @@ class State():
         if self.mv.patient_book.GetSelection() == 0:
             self.mv.newvisitbtn.Enable()
         self.mv.order_book.page0.reuse_druglist_btn.Enable()
-        self.mv.GetMenuBar().menuNewVisit.Enable()
+        menubar: "menubar.MyMenuBar" = self.mv.GetMenuBar()
+        menubar.menuNewVisit.Enable()
         if self.patient:
-            self.mv.GetMenuBar().menuInsertVisit.Enable(False)
+            menubar.menuInsertVisit.Enable(False)
             self.mv.order_book.page0.use_sample_prescription_btn.Disable()
-        self.mv.GetMenuBar().menuUpdateVisit.Enable()
-        self.mv.GetMenuBar().menuDeleteVisit.Enable()
+        menubar.menuUpdateVisit.Enable()
+        menubar.menuDeleteVisit.Enable()
+        menubar.menuPrint.Enable()
+        menubar.menuPreview.Enable()
         self.mv.visit_list.SetFocus()
 
     def onVisitDeselect(self) -> None:
@@ -161,12 +161,13 @@ class State():
         self.mv.newvisitbtn.Disable()
         self.mv.savebtn.SetLabel("Lưu")
         self.mv.order_book.page0.reuse_druglist_btn.Disable()
-        self.mv.GetMenuBar().menuNewVisit.Enable(False)
+        menubar: "menubar.MyMenuBar" = self.mv.GetMenuBar()
+        menubar.menuNewVisit.Enable(False)
         if self.patient:
             self.mv.order_book.page0.use_sample_prescription_btn.Enable()
-            self.mv.GetMenuBar().menuInsertVisit.Enable()
-        self.mv.GetMenuBar().menuUpdateVisit.Enable(False)
-        self.mv.GetMenuBar().menuDeleteVisit.Enable(False)
+            menubar.menuInsertVisit.Enable()
+        menubar.menuUpdateVisit.Enable(False)
+        menubar.menuDeleteVisit.Enable(False)
         self.warehouse = None
 
     @property
