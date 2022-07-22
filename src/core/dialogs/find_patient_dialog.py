@@ -1,4 +1,4 @@
-from core.initialize import *
+from core.initialize import size
 from core import mainview
 import core.other_func as otf
 from core.dialogs.patient_dialog import EditPatientDialog
@@ -16,7 +16,7 @@ class SearchPatientList(wx.ListCtrl):
             size=(-1, 26 * num_of_lines)
         )
         self.AppendColumn('Mã BN')
-        self.AppendColumn('Họ tên')
+        self.AppendColumn('Họ tên', width=size(0.1))
         self.AppendColumn('Giới')
         self.AppendColumn('Ngày sinh')
         self.num_of_lines = num_of_lines

@@ -41,7 +41,7 @@ class PatientListCtrl(wx.ListCtrl):
         self.AppendColumn('Mã BN')
         self.AppendColumn('Họ tên', width=size(0.1))
         self.AppendColumn('Giới')
-        self.AppendColumn('Ngày sinh', width=size(0.05))
+        self.AppendColumn('Ngày sinh')
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick)

@@ -21,7 +21,7 @@ class MainView(wx.Frame):
     def __init__(self, con: 'db_func.Connection', config: dict[str, Any], sample: bool = False):
         super().__init__(
             parent=None,
-            pos=(20,20),
+            pos=(0,20),
             title='PHẦN MỀM PHÒNG KHÁM TẠI NHÀ')
         self.SetBackgroundColour(background_color)
 

@@ -74,13 +74,13 @@ class Follow(wx.ComboBox):
         super().__init__(
             parent,
             style=wx.CB_DROPDOWN,
-            choices=choice_dict.keys(),
+            choices=list(choice_dict.keys()),
             **kwargs
         )
         self.choice_dict = choice_dict
         self.Bind(wx.EVT_COMBOBOX, self.onChoose)
-        k = self.choice_dict.keys()[0]
-        self.SetValue(self.format(k))
+        k = list(self.choice_dict.keys())[0]
+        self.ChangeValue(self.format(k))
 
     def format(self, key:str) -> str:
         return f"{key}: {self.choice_dict[key]}"
@@ -90,6 +90,7 @@ class Follow(wx.ComboBox):
         self.SetValue(self.format(k))
 
     def SetFollow(self, key: str | None):
+        print(key)
         if key is None:
             self.SetValue('')
         elif key in self.choice_dict.keys():
@@ -99,10 +100,15 @@ class Follow(wx.ComboBox):
 
     def GetFollow(self) -> str | None:
         val: str = self.GetValue().strip()
-        k, v = tuple(val.split(": ", 1))
         if val == '':
             return None
-        elif (k, v) in self.choice_dict.items():
-            return k
         else:
-            return val
+            k, v = tuple(val.split(": ", 1))
+            if (k, v) in self.choice_dict.items():
+                return k
+            else:
+                return val
+
+    def SetDefault(self):
+        k = list(self.choice_dict.keys())[0]
+        self.ChangeValue(self.format(k))
