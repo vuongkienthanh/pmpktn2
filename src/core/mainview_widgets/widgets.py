@@ -74,23 +74,32 @@ class Follow(wx.ComboBox):
         super().__init__(
             parent,
             style=wx.CB_DROPDOWN,
-            choices=[f"{i}: {j[:100]}..." for i, j in choice_dict.items()],
+            choices=choice_dict.keys(),
             **kwargs
         )
         self.choice_dict = choice_dict
-        self.SetSelection(0)
+        self.Bind(wx.EVT_COMBOBOX, self.onChoose)
+        k = self.choice_dict.keys()[0]
+        self.SetValue(self.format(k))
 
-    def SetFollow(self, val: str | None):
-        if val is None:
+    def format(self, key:str) -> str:
+        return f"{key}: {self.choice_dict[key]}"
+
+    def onChoose(self, e:wx.CommandEvent):
+        k : str = e.GetString()
+        self.SetValue(self.format(k))
+
+    def SetFollow(self, key: str | None):
+        if key is None:
             self.SetValue('')
-        elif val in self.choice_dict.keys():
-            self.SetValue(f"{val}: {self.choice_dict[val]}")
+        elif key in self.choice_dict.keys():
+            self.SetValue(self.format(key))
         else:
-            self.SetValue(val)
+            self.SetValue(key)
 
     def GetFollow(self) -> str | None:
         val: str = self.GetValue().strip()
-        k, v = tuple(val.split(":", 1))
+        k, v = tuple(val.split(": ", 1))
         if val == '':
             return None
         elif (k, v) in self.choice_dict.items():
