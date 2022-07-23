@@ -13,8 +13,6 @@ background_color = wx.Colour(206, 219, 186)
 # some size
 w :tuple[int, int] = wx.DisplaySize()[0]
 
-
-
 def size(p):
     return round(w*p)
 def tsize(p):

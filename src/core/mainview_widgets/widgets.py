@@ -21,6 +21,8 @@ class DaysCtrl(wx.SpinCtrl):
     def onSpin(self, e: wx.SpinEvent):
         self.mv.recheck.SetValue(e.GetPosition())
         self.mv.updatequantitybtn.Enable()
+        if self.mv.order_book.page0.check_wh_do_ti_filled():
+            self.mv.order_book.page0.quantity.FetchQuantity()
 
 
 class RecheckCtrl(wx.SpinCtrl):

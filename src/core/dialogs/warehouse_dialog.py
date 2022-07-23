@@ -1,3 +1,4 @@
+from core.initialize import size
 from db.db_class import Warehouse
 import core.other_func as otf
 from core import mainview
@@ -18,13 +19,19 @@ class WarehouseSetupDialog(wx.Dialog):
         self.search = wx.SearchCtrl(self)
         self.search.SetHint("Tên thuốc hoặc thành phần thuốc")
         self.lc = wx.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
-        for f in [
-            "Mã", "Tên".ljust(40), "Thành phần".ljust(40),
-            "Số lượng", "Đơn vị sử dụng", "Phương thức sử dụng",
-            "Giá mua", "Giá bán", "Đơn vị bán", "Ngày hết hạn",
-            "Xuất xứ", "Ghi chú".ljust(60)
-        ]:
-            self.lc.AppendColumn(f)
+        
+        self.lc.AppendColumn("Mã")
+        self.lc.AppendColumn("Tên", width=size(0.1))
+        self.lc.AppendColumn("Thành phần", width=size(0.1))
+        self.lc.AppendColumn("Số lượng")
+        self.lc.AppendColumn("Đơn vị sử dụng",width=-2)
+        self.lc.AppendColumn("Cách sử dụng",width=-2)
+        self.lc.AppendColumn("Giá mua")
+        self.lc.AppendColumn("Giá bán")
+        self.lc.AppendColumn("Đơn vị bán")
+        self.lc.AppendColumn("Ngày hết hạn", width=-2)
+        self.lc.AppendColumn("Xuất xứ")
+        self.lc.AppendColumn("Ghi chú")
         self.newbtn = wx.Button(self, label="Thêm mới")
         self.editbtn = wx.Button(self, label="Cập nhật")
         self.delbtn = wx.Button(self, label="Xóa")

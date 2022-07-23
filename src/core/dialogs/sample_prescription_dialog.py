@@ -1,4 +1,5 @@
 from core import mainview
+from core.initialize import size
 from core.generic import DoseTextCtrl, NumberTextCtrl
 from db.db_class import *
 import wx
@@ -62,7 +63,7 @@ class SampleList(wx.ListCtrl):
         super().__init__(parent, style=wx.LC_SINGLE_SEL |
                          wx.LC_REPORT | wx.LC_NO_HEADER, name=name)
         self.parent = parent
-        self.AppendColumn("name".ljust(150), width=-2)
+        self.AppendColumn("name", width=size(0.2))
         self.DeleteAllItems()
         for sp in self.parent.mv.state.sampleprescriptionlist:
             self.append(sp)
