@@ -1,4 +1,4 @@
-from path_init import weight_bm
+from path_init import weight_bm, update_druglist_bm
 from db.db_class import Visit, Patient, LineDrug
 import core.other_func as otf
 from core import mainview as mv
@@ -15,9 +15,10 @@ class GetWeightBtn(wx.BitmapButton):
         super().__init__(parent, bitmap=wx.Bitmap(weight_bm))
         self.mv = parent
         self.SetToolTip("Lấy cân nặng mới nhất")
-        self.Bind(wx.EVT_BUTTON, self.onGetWeight)
+        self.Bind(wx.EVT_BUTTON, self.onClick)
+        self.Disable()
 
-    def onGetWeight(self, e: wx.CommandEvent):
+    def onClick(self, e: wx.CommandEvent):
         visit_count = self.mv.visit_list.GetItemCount()
         if self.mv.state.patient and (visit_count > 0):
             self.mv.weight.SetWeight(self.mv.con.execute(f"""
@@ -42,12 +43,13 @@ class NoRecheckBtn(wx.Button):
         self.mv.recheck.SetValue(0)
 
 
-class UpdateQuantityBtn(wx.Button):
+class UpdateQuantityBtn(wx.BitmapButton):
     """Provide `update_quantity` method for DrugList, also update price"""
 
     def __init__(self, parent: "mv.MainView"):
-        super().__init__(parent, label="Cập nhật lại số lượng thuốc trong toa theo ngày")
+        super().__init__(parent, bitmap=wx.Bitmap(update_druglist_bm))
         self.mv = parent
+        self.SetToolTip("Cập nhật lại số lượng thuốc trong toa theo ngày")
         self.Bind(wx.EVT_BUTTON, self.onClick)
         self.Disable()
 
