@@ -1,4 +1,3 @@
-import subprocess
 from path_init import SRC_DIR, CONFIG_PATH
 from db.db_class import *
 from core import mainview
@@ -7,7 +6,9 @@ from core.dialogs.patient_dialog import EditPatientDialog, NewPatientDialog
 from core.dialogs.setup_dialog import SetupDialog
 from core.dialogs.warehouse_dialog import WarehouseSetupDialog
 from core.dialogs.sample_prescription_dialog import SampleDialog
-from core.printer import PrintOut, printdata
+
+from core.printer import printdata, PrintOut
+import subprocess
 import wx
 import shutil
 import os.path

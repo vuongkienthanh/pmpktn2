@@ -1,72 +1,29 @@
 import core.other_func as otf
-from core import mainview as mv
-from core.initialize import print_mm, preview_mm, scale
+from .printdata import BasePrintOut
 import textwrap as tw
 import wx
 
 
-printdata = wx.PrintData()
-printdata.Bin = wx.PRINTBIN_DEFAULT
-printdata.Collate = False
-printdata.Colour = False
-printdata.Duplex = wx.DUPLEX_SIMPLEX
-printdata.NoCopies = 1
-printdata.Orientation = wx.PORTRAIT
-printdata.PrinterName = ''
-printdata.Quality = wx.PRINT_QUALITY_LOW
-printdata.PaperId = wx.PAPER_A5
-
-
-class PrintOut(wx.Printout):
-
-    def __init__(self, mv: 'mv.MainView', num_of_ld=8, preview=False):
-        super().__init__(title="Toa thuốc")
-
-        self.mv = mv
-        self.num_of_ld = num_of_ld
-        self.preview = preview
-        self.d_list = self.mv.order_book.page0.drug_list._list
-
-    def HasPage(self, page):
-        x, y = divmod(
-            self.mv.order_book.page0.drug_list.ItemCount,
-            self.num_of_ld
-        )
-        if page <= (x + bool(y)):
-            return True
-        elif page == 1 and (x + y) == 0:
-            return True
-        else:
-            return False
-
-    def GetPageInfo(self):
-        if self.mv.order_book.page0.drug_list.ItemCount == 0:
-            return (1, 1, 1, 1)
-        else:
-            x, y = divmod(
-                self.mv.order_book.page0.drug_list.ItemCount,
-                self.num_of_ld
-            )
-        return (1, x + bool(y), 1, x + bool(y))
+class PrintOut(BasePrintOut):
 
     def OnPrintPage(self, page):
         dc: wx.DC = self.GetDC()
         if self.preview:
-            dc.SetMapMode(preview_mm)
+            dc.SetMapMode(wx.MM_LOMETRIC)
         else:
-            dc.SetMapMode(print_mm)
+            dc.SetMapMode(wx.MM_TEXT)
 
         state = self.mv.state
         p = state.patient
         assert p is not None
 
         # fonts
-        title = wx.Font(wx.FontInfo(48*scale).Bold())
-        info = wx.Font(wx.FontInfo(38*scale))
-        info_italic = wx.Font(wx.FontInfo(38*scale).Italic())
-        list_num = wx.Font(wx.FontInfo(38*scale).Bold())
-        drug_name = wx.Font(wx.FontInfo(44*scale))
-        heading = wx.Font(wx.FontInfo(26*scale))
+        title = wx.Font(wx.FontInfo(48).Bold())
+        info = wx.Font(wx.FontInfo(38))
+        info_italic = wx.Font(wx.FontInfo(38).Italic())
+        list_num = wx.Font(wx.FontInfo(38).Bold())
+        drug_name = wx.Font(wx.FontInfo(44))
+        heading = wx.Font(wx.FontInfo(26))
 
         def draw_top():
             with wx.DCFontChanger(dc, heading):
