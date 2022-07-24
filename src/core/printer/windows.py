@@ -14,7 +14,7 @@ class PrintOut(BasePrintOut):
         assert p is not None
 
         # fonts
-        title = wx.Font(wx.FontInfo(36).Bold())        
+        title = wx.Font(wx.FontInfo(36).Bold())
         info = wx.Font(wx.FontInfo(26))
         info_italic = wx.Font(wx.FontInfo(26).Italic())
         list_num = wx.Font(wx.FontInfo(26).Bold())
