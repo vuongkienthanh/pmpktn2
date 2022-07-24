@@ -160,6 +160,7 @@ class Quantity(NumberTextCtrl):
         super().__init__(parent, size=tsize(0.03))
         self.parent = parent
         self.SetHint('Enter')
+        self.Bind(wx.EVT_CHAR, self.onChar)
 
     def FetchQuantity(self):
         mv = self.parent.parent.mv
@@ -174,6 +175,11 @@ class Quantity(NumberTextCtrl):
             self.SetValue(str(res))
         else:
             self.SetValue('')
+
+    def onChar(self, e: wx.KeyEvent):
+        if e.KeyCode == k_tab:
+            self.parent.note.SetFocus()
+            self.parent.note.SetInsertionPointEnd()
 
 
 class Note(wx.TextCtrl):

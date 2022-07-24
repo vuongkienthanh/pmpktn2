@@ -1,4 +1,3 @@
-from re import S
 import subprocess
 from path_init import SRC_DIR, CONFIG_PATH
 from db.db_class import *
@@ -37,10 +36,7 @@ class MyMenuBar(wx.MenuBar):
         menuPatient.Append(wx.ID_NEW, "Bệnh nhân mới\tCTRL+N")
         self.menuUpdatePatient: wx.MenuItem = menuPatient.Append(
             wx.ID_EDIT, "Cập nhật thông tin bệnh nhân\tCTRL+U")
-        self.menuDeletePatient: wx.MenuItem = menuPatient.Append(
-            wx.ID_DELETE, "Xóa bệnh nhân\tCTRL+D")
         self.menuUpdatePatient.Enable(False)
-        self.menuDeletePatient.Enable(False)
         editMenu.AppendSubMenu(menuPatient, "Bệnh nhân")
 
         menuVisit = wx.Menu()
@@ -100,7 +96,6 @@ class MyMenuBar(wx.MenuBar):
         self.Bind(wx.EVT_MENU, self.onNewPatient, id=wx.ID_NEW)
         self.Bind(wx.EVT_MENU, self.onFindPatient, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self.onEditPatient, id=wx.ID_EDIT)
-        self.Bind(wx.EVT_MENU, self.onDeletePatient, id=wx.ID_DELETE)
         self.Bind(wx.EVT_MENU, self.onNewVisit, self.menuNewVisit)
         self.Bind(wx.EVT_MENU, self.onInsertVisit, self.menuInsertVisit)
         self.Bind(wx.EVT_MENU, self.onUpdateVisit, self.menuUpdateVisit)
@@ -140,18 +135,6 @@ class MyMenuBar(wx.MenuBar):
         assert mv.state.patient is not None
         if EditPatientDialog(mv).ShowModal() == wx.ID_OK:
             page.EnsureVisible(idx)
-
-    def onDeletePatient(self, e):
-        if wx.MessageBox("Xác nhận?", "Xóa bệnh nhân", style=wx.YES_NO | wx.NO_DEFAULT | wx.CENTRE) == wx.YES:
-            mv: 'mainview.MainView' = self.GetFrame()
-            p = mv.state.patient
-            assert p is not None
-            try:
-                mv.con.delete(Patient, p.id)
-                wx.MessageBox("Xóa thành công", "OK")
-                mv.state.refresh()
-            except sqlite3.Error as error:
-                wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
 
     def onNewVisit(self, e):
         mv: 'mainview.MainView' = self.GetFrame()

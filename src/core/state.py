@@ -78,7 +78,6 @@ class State():
 
         menubar: 'menubar.MyMenuBar' = self.mv.GetMenuBar()
         menubar.menuUpdatePatient.Enable()
-        menubar.menuDeletePatient.Enable()
         menubar.menuInsertVisit.Enable()
         if idx == 0:
             menubar.menuDeleteQueueList.Enable()
@@ -106,7 +105,6 @@ class State():
 
         menubar: "menubar.MyMenuBar" = self.mv.GetMenuBar()
         menubar.menuUpdatePatient.Enable(False)
-        menubar.menuDeletePatient.Enable(False)
         menubar.menuInsertVisit.Enable(False)
         menubar.menuPrint.Enable(False)
         menubar.menuPreview.Enable(False)

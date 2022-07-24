@@ -264,17 +264,18 @@ class FindPatientDialog(wx.Dialog):
         EditFindPatientDialog(self).ShowModal()
 
     def onDelete(self, e: wx.CommandEvent):
-        pid = self.lc.pid
-        assert pid is not None
-        try:
-            self.mv.con.delete(Patient, pid)
-            wx.MessageBox("Xóa thành công", "OK")
-            self.mv.state.refresh()
-            self.clear()
-        except sqlite3.Error as error:
-            wx.MessageBox(f"Lỗi không xóa được\n{error}", "Lỗi")
-        finally:
-            self.search.SetFocus()
+        if wx.MessageBox("Xác nhận?", "Xóa bệnh nhân", style=wx.YES_NO | wx.NO_DEFAULT | wx.CENTRE) == wx.YES:
+            pid = self.lc.pid
+            assert pid is not None
+            try:
+                self.mv.con.delete(Patient, pid)
+                wx.MessageBox("Xóa thành công", "OK")
+                self.mv.state.refresh()
+                self.clear()
+            except sqlite3.Error as error:
+                wx.MessageBox(f"Lỗi không xóa được\n{error}", "Lỗi")
+            finally:
+                self.search.SetFocus()
 
     def onClose(self, e: wx.CloseEvent):
         if self.cur is not None:

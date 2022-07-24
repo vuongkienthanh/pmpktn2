@@ -89,15 +89,3 @@ class UseSamplePrescriptionBtn(wx.Button):
                         'sale_price': lsp['sale_price']
                     })
                     self.mv.price.FetchPrice()
-# item = {
-#             'drug_id': wh.id,
-#             'name': wh.name,
-#             'times': int(self.parent.times.Value.strip()),
-#             'dose': self.parent.dose.Value.strip(),
-#             'quantity': int(self.parent.quantity.Value.strip()),
-#             'usage': wh.usage,
-#             'usage_unit': wh.usage_unit,
-#             'sale_unit': wh.sale_unit,
-#             'sale_price': wh.sale_price,
-#             'note': self.parent.note.GetValue()
-#         }
