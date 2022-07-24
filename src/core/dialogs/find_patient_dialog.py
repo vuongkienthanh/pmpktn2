@@ -8,6 +8,7 @@ import sqlite3
 
 
 class SearchPatientList(wx.ListCtrl):
+    """Listctrl with next,prev button, fetch cursor when needed"""
 
     def __init__(self, parent: 'FindPatientDialog', num_of_lines: int):
         super().__init__(
@@ -167,6 +168,7 @@ class FindPatientDialog(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
     def onSearch(self, e: wx.CommandEvent):
+        """Enter (EVT_SEARCH) to activate"""
         s: str = e.GetString()
         self.rebuild(s)
 

@@ -9,7 +9,7 @@ import wx
 class WarehouseSetupDialog(wx.Dialog):
     def __init__(self, parent: 'mainview.MainView'):
         """
-        `_list`: internal list to keep track of Warehouse in dialog
+        `_list`: internal list to keep track of filtered Warehouse in dialog
         """
         super().__init__(parent=parent, title="Kho thuốc",
                          style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
@@ -72,26 +72,24 @@ class WarehouseSetupDialog(wx.Dialog):
         self.build()
 
     def clear(self):
-        """
-        clear display and internal Warehouse list
-        """
+        "clear display and internal Warehouse list"
         self._list = []
         self.lc.DeleteAllItems()
 
     def get_search_value(self) -> str:
-        """
-        get string 
-        """
+        "get search string"
         s: str = self.search.GetValue()
         return s.strip().casefold()
 
     def check_search_str_to_wh(self, wh: Warehouse, s: str) -> bool:
+        "used in filter function"
         if (s in wh.name.casefold()) or (s in wh.element.casefold()):
             return True
         else:
             return False
 
     def rebuild(self, s: str = ''):
+        "filter and build"
         self.clear()
         for wh in filter(
                 lambda wh: self.check_search_str_to_wh(wh, s),
@@ -100,11 +98,13 @@ class WarehouseSetupDialog(wx.Dialog):
             self.append(wh)
 
     def build(self):
+        "build without filtering for optimization"
         self.clear()
         for wh in self.mv.state.warehouselist:
             self.append(wh)
 
     def append(self, wh: Warehouse):
+        "append to internal list and ui, also conditional recolor"
         self._list.append(wh)
         self.lc.Append([
             str(wh.id),
@@ -124,18 +124,22 @@ class WarehouseSetupDialog(wx.Dialog):
         self.check_min_quantity(wh, len(self._list) - 1)
 
     def delete(self, idx: int):
+        "delete from internal list and ui"
         self.lc.DeleteItem(idx)
         self._list.pop(idx)
 
     def check_min_quantity(self, wh: Warehouse, idx: int):
+        "conditional recolor"
         if wh.quantity <= self.mv.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"]:
             self.lc.SetItemTextColour(idx, wx.Colour(252, 3, 57))
 
     def onSearch(self, e: wx.CommandEvent):
+        "enter (EVT_SEARCH) to activate"
         self.rebuild(self.get_search_value())
         e.Skip()
 
     def onSearchText(self, e: wx.CommandEvent):
+        "when delete all text, build from state.warehouselist"
         if len(self.search.GetValue()) == 0:
             self.build()
 
@@ -156,6 +160,8 @@ class WarehouseSetupDialog(wx.Dialog):
         EditWarehouseDialog(self, wh).ShowModal()
 
     def onDelete(self, e: wx.CommandEvent):
+        """Delete Warehouse
+        Note: there are restrict constrain on Warehouse"""
         idx: int = self.lc.GetFirstSelected()
         wh = self._list[idx]
         try:
@@ -167,7 +173,7 @@ class WarehouseSetupDialog(wx.Dialog):
             wx.MessageBox(f"Lỗi không xóa được\n{error}", "Lỗi")
 
 
-class WarehouseDialog(wx.Dialog):
+class BaseWarehouseDialog(wx.Dialog):
     def __init__(self, parent: WarehouseSetupDialog, title: str):
         super().__init__(parent, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER, title=title)
         self.parent = parent
@@ -238,6 +244,7 @@ class WarehouseDialog(wx.Dialog):
     def onOkBtn(self, e: wx.CommandEvent): ...
 
     def is_valid(self) -> bool:
+        "valid when all fields in mandatory are filled"
         for widget in self.mandatory:
             val: str = widget.GetValue()
             name: str = widget.GetName()
@@ -248,6 +255,7 @@ class WarehouseDialog(wx.Dialog):
             return True
 
     def checked_get_sale_unit_value(self) -> str | None:
+        "return sale_unit or usage_unit if none"
         sale_unit: str = self.sale_unit.GetValue()
         sale_unit = sale_unit.strip()
         usage_unit: str = self.usage_unit.GetValue()
@@ -259,11 +267,12 @@ class WarehouseDialog(wx.Dialog):
             return sale_unit
 
 
-class NewWarehouseDialog(WarehouseDialog):
+class NewWarehouseDialog(BaseWarehouseDialog):
     def __init__(self, parent: WarehouseSetupDialog):
         super().__init__(parent, title="Thêm mới")
 
     def onOkBtn(self, e):
+        "sql insert, append to state.warehouselist, rebuild with search str"
         if self.is_valid():
             wh = {
                 'name': self.name.Value.strip(),
@@ -291,7 +300,7 @@ class NewWarehouseDialog(WarehouseDialog):
                 wx.MessageBox(f"Thêm mới thất bại\n{error}", "Thêm mới")
 
 
-class EditWarehouseDialog(WarehouseDialog):
+class EditWarehouseDialog(BaseWarehouseDialog):
     def __init__(self, parent: WarehouseSetupDialog, wh: Warehouse):
         super().__init__(parent, title="Cập nhật")
         self.wh = wh
