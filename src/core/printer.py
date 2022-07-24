@@ -62,11 +62,11 @@ class PrintOut(wx.Printout):
 
         # fonts
         title = wx.Font(wx.FontInfo(48*scale).Bold())
-        info = wx.Font(wx.FontInfo(38))
-        info_italic = wx.Font(wx.FontInfo(38).Italic())
-        list_num = wx.Font(wx.FontInfo(38).Bold())
-        drug_name = wx.Font(wx.FontInfo(44))
-        heading = wx.Font(wx.FontInfo(26))
+        info = wx.Font(wx.FontInfo(38*scale))
+        info_italic = wx.Font(wx.FontInfo(38*scale).Italic())
+        list_num = wx.Font(wx.FontInfo(38*scale).Bold())
+        drug_name = wx.Font(wx.FontInfo(44*scale))
+        heading = wx.Font(wx.FontInfo(26*scale))
 
         def draw_top():
             with wx.DCFontChanger(dc, heading):
