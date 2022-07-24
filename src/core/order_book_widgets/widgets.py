@@ -157,7 +157,7 @@ class Dose(DoseTextCtrl):
 class Quantity(NumberTextCtrl):
 
     def __init__(self, parent: 'order_book.PrescriptionPage'):
-        super().__init__(parent, size=tsize(0.03), style=wx.TE_PROCESS_TAB)
+        super().__init__(parent, size=tsize(0.03))
         self.parent = parent
         self.SetHint('Enter')
         self.Bind(wx.EVT_CHAR, self.onChar)
