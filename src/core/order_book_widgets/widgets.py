@@ -1,5 +1,5 @@
 from core import order_book
-from core.initialize import k_tab, size, tsize
+from core.initialize import k_tab, k_number, k_special, size, tsize
 import core.other_func as otf
 from core.generic import NumberTextCtrl, DoseTextCtrl
 from typing import Any
@@ -177,10 +177,11 @@ class Quantity(NumberTextCtrl):
             self.SetValue('')
 
     def onChar(self, e: wx.KeyEvent):
-        if e.KeyCode == k_tab:
+        kc = e.KeyCode
+        if kc in k_tab:
             self.parent.note.SetFocus()
             self.parent.note.SetInsertionPointEnd()
-        else:
+        elif kc in k_special + k_number:
             e.Skip()
 
 
