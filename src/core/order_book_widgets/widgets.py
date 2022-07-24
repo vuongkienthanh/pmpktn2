@@ -180,7 +180,7 @@ class Quantity(NumberTextCtrl):
         kc = e.KeyCode
         if kc in k_tab:
             if e.ShiftDown():
-                e.Skip()
+                self.parent.dose.SetFocus()
             else:
                 self.parent.note.SetFocus()
                 self.parent.note.SetInsertionPointEnd()
