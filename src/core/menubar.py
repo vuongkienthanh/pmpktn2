@@ -151,6 +151,7 @@ class MyMenuBar(wx.MenuBar):
                 wx.MessageBox("Xóa thành công", "OK")
                 mv.state.queuelist = mv.state.get_queuelist()
                 mv.state.todaylist = mv.state.get_todaylist()
+                mv.state.patient = None
             except sqlite3.Error as error:
                 wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
 
