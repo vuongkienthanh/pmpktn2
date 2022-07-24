@@ -157,7 +157,7 @@ class Dose(DoseTextCtrl):
 class Quantity(NumberTextCtrl):
 
     def __init__(self, parent: 'order_book.PrescriptionPage'):
-        super().__init__(parent, size=tsize(0.03))
+        super().__init__(parent, size=tsize(0.03), style=wx.TE_PROCESS_TAB)
         self.parent = parent
         self.SetHint('Enter')
         self.Bind(wx.EVT_CHAR, self.onChar)
@@ -180,6 +180,8 @@ class Quantity(NumberTextCtrl):
         if e.KeyCode == k_tab:
             self.parent.note.SetFocus()
             self.parent.note.SetInsertionPointEnd()
+        else:
+            e.Skip()
 
 
 class Note(wx.TextCtrl):
