@@ -43,7 +43,7 @@ class DrugPopup(wx.ComboPopup):
         return ""
 
     def GetAdjustedSize(self, minWidth, prefHeight, maxHeight):
-        return super().GetAdjustedSize(size(0.4),-1,-1)
+        return super().GetAdjustedSize(size(0.4), -1, -1)
 
     def fetch_list(self, s: str):
         s = s.casefold()
@@ -134,7 +134,7 @@ class DrugPopup(wx.ComboPopup):
 class DrugPicker(wx.ComboCtrl):
 
     def __init__(self, parent: 'order_book.PrescriptionPage'):
-        super().__init__(parent,style=wx.TE_PROCESS_ENTER)
+        super().__init__(parent, style=wx.TE_PROCESS_ENTER)
         self.parent = parent
         self.SetPopupControl(DrugPopup())
         self.Bind(wx.EVT_CHAR, self.onChar)

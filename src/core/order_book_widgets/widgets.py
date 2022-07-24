@@ -23,7 +23,7 @@ class DrugList(wx.ListCtrl):
         self.AppendColumn('Cách dùng', width=size(0.15))
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
-    
+
     def clear(self):
         self.DeleteAllItems()
         self._list.clear()

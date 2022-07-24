@@ -66,7 +66,7 @@ class State():
         self.mv.recheck.Enable()
         self.mv.norecheck.Enable()
         self.mv.order_book.page0.use_sample_prescription_btn.Enable()
-        self.visit=None
+        self.visit = None
         self.visitlist = self.mv.con.select_visits_by_patient_id(p.id, limit=5)
         if len(self.visitlist) > 0:
             self.mv.get_weight_btn.Enable()

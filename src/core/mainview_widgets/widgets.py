@@ -84,11 +84,11 @@ class Follow(wx.ComboBox):
         k = list(self.choice_dict.keys())[0]
         self.ChangeValue(self.format(k))
 
-    def format(self, key:str) -> str:
+    def format(self, key: str) -> str:
         return f"{key}: {self.choice_dict[key]}"
 
-    def onChoose(self, e:wx.CommandEvent):
-        k : str = e.GetString()
+    def onChoose(self, e: wx.CommandEvent):
+        k: str = e.GetString()
         self.SetValue(self.format(k))
 
     def SetFollow(self, key: str | None):

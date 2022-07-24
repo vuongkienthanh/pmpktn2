@@ -58,7 +58,7 @@ class PrescriptionPage(wx.Panel):
         usage_row = wx.BoxSizer(wx.HORIZONTAL)
         usage_row.AddMany([
             static('Cách dùng:'),
-            widget(self.note,1),
+            widget(self.note, 1),
             widget(self.save_drug_btn),
             widget(self.del_drug_btn)
         ])

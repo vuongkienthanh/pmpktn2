@@ -35,7 +35,7 @@ class PatientListCtrl(wx.ListCtrl):
         super().__init__(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         self.parent = parent
         self.mv = parent.mv
-        _,_,w,_ =  self.GetClientRect()
+        _, _, w, _ = self.GetClientRect()
         # print(self.parent)
         # print(w,h)
         self.AppendColumn('Mã BN')
@@ -68,7 +68,7 @@ class QueuingPatientList(PatientListCtrl):
 
     def __init__(self, parent: PatientBook):
         super().__init__(parent)
-        _,_,w,_ =  self.GetClientRect()
+        _, _, w, _ = self.GetClientRect()
         self.AppendColumn('Giờ đăng ký', width=size(0.075))
 
     def append_ui(self, row: sqlite3.Row):

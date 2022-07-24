@@ -11,10 +11,13 @@ background_color = wx.Colour(206, 219, 186)
 
 
 # some size
-w :tuple[int, int] = wx.DisplaySize()[0]
+w: tuple[int, int] = wx.DisplaySize()[0]
+
 
 def size(p):
     return round(w*p)
+
+
 def tsize(p):
     return (size(p), -1)
 
@@ -38,8 +41,8 @@ k_tab: tuple[int] = (9,)
 if sys.platform == 'win32':
     print_mm = wx.MM_LOMETRIC
     preview_mm = wx.MM_LOMETRIC
-    scale=0.8
+    scale = 0.8
 else:
     print_mm = wx.MM_TEXT
     preview_mm = wx.MM_LOMETRIC
-    scale=1
+    scale = 1

@@ -66,7 +66,6 @@ class MyMenuBar(wx.MenuBar):
         self.menuDeleteQueueList.Enable(False)
         editMenu.AppendSubMenu(menuQueueList, "Danh sách chờ")
 
-
         editMenu.AppendSeparator()
         editMenu.Append(wx.ID_OPEN, "Tìm bệnh nhân cũ\tCTRL+O")
 
@@ -196,7 +195,6 @@ class MyMenuBar(wx.MenuBar):
                 mv.state.refresh()
             except Exception as error:
                 wx.MessageBox("Lỗi không xóa được\n" + str(error), "Lỗi")
-
 
     def onPrint(self, e):
         printout = PrintOut(self.Parent)

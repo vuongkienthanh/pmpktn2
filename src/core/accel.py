@@ -10,5 +10,6 @@ my_accel = wx.AcceleratorTable([
     wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_CONTROL_S, wx.ID_SAVE),
     wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_CONTROL_Q, wx.ID_EXIT),
     wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_CONTROL_P, wx.ID_PRINT),
-    wx.AcceleratorEntry(wx.ACCEL_CTRL|wx.ACCEL_SHIFT, wx.WXK_CONTROL_P, wx.ID_PREVIEW),
+    wx.AcceleratorEntry(wx.ACCEL_CTRL | wx.ACCEL_SHIFT,
+                        wx.WXK_CONTROL_P, wx.ID_PREVIEW),
 ])

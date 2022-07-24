@@ -1,5 +1,5 @@
 from db import db_func
-from core.initialize import  background_color, tsize
+from core.initialize import background_color, tsize
 import core.other_func as otf
 from core.state import State
 from core.generic import AgeCtrl, PhoneTextCtrl, DateTextCtrl, WeightCtrl
@@ -21,7 +21,7 @@ class MainView(wx.Frame):
     def __init__(self, con: 'db_func.Connection', config: dict[str, Any], sample: bool = False):
         super().__init__(
             parent=None,
-            pos=(0,20),
+            pos=(0, 20),
             title='PHẦN MỀM PHÒNG KHÁM TẠI NHÀ')
         self.SetBackgroundColour(background_color)
 
@@ -32,11 +32,14 @@ class MainView(wx.Frame):
 
         self.patient_book = PatientBook(self)
         self.visit_list = VisitList(self)
-        self.name = otf.disable_text_ctrl(wx.TextCtrl(self,size=tsize(0.1), name="Họ tên:"))
-        self.gender = otf.disable_text_ctrl(wx.TextCtrl(self, size=tsize(0.025), name="Giới:"))
+        self.name = otf.disable_text_ctrl(
+            wx.TextCtrl(self, size=tsize(0.1), name="Họ tên:"))
+        self.gender = otf.disable_text_ctrl(
+            wx.TextCtrl(self, size=tsize(0.025), name="Giới:"))
         self.birthdate = otf.disable_text_ctrl(
-            DateTextCtrl(self, size=tsize(0.05),name="Ngày sinh:"))
-        self.age = otf.disable_text_ctrl(AgeCtrl(self, size=tsize(0.055), name="Tuổi:"))
+            DateTextCtrl(self, size=tsize(0.05), name="Ngày sinh:"))
+        self.age = otf.disable_text_ctrl(
+            AgeCtrl(self, size=tsize(0.055), name="Tuổi:"))
         self.address = otf.disable_text_ctrl(
             wx.TextCtrl(self, name="Địa chỉ:"))
         self.phone = otf.disable_text_ctrl(
@@ -113,12 +116,12 @@ class MainView(wx.Frame):
         right_sizer.AddMany([
             (name_row, 0, wx.EXPAND),
             (addr_row, 0, wx.EXPAND),
-            (wx.StaticText(self, label=self.past_history.Name),0,wx.EXPAND),
+            (wx.StaticText(self, label=self.past_history.Name), 0, wx.EXPAND),
             widget(self.past_history, 1, 0),
             (diag_row, 0, wx.EXPAND),
-            (wx.StaticText(self, label=self.vnote.Name),0,wx.EXPAND),
+            (wx.StaticText(self, label=self.vnote.Name), 0, wx.EXPAND),
             widget(self.vnote, 1, 0),
-            (weight_row, 0,wx.EXPAND),
+            (weight_row, 0, wx.EXPAND),
             (self.order_book, 3, wx.EXPAND),
             (recheck_row, 0, wx.EXPAND),
             (self.follow, 0, wx.EXPAND),
