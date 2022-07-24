@@ -95,6 +95,7 @@ class DrugPopup(wx.ComboPopup):
         self.Dismiss()
         cc: DrugPicker = self.GetComboCtrl()
         cc.parent.parent.mv.state.warehouse = self._list[self.curitem]
+        cc.parent.times.SetFocus()
 
     def onChar(self, e: wx.KeyEvent):
         c = e.KeyCode
@@ -139,7 +140,7 @@ class DrugPicker(wx.ComboCtrl):
         self.SetPopupControl(DrugPopup())
         self.Bind(wx.EVT_CHAR, self.onChar)
         self.Bind(wx.EVT_TEXT, self.onText)
-        # self.SetHint("Enter để search thuốc")
+        self.SetHint("Enter để search thuốc")
 
     def onChar(self, e: wx.KeyEvent):
         if e.KeyCode == wx.WXK_RETURN:
