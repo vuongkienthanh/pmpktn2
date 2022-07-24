@@ -269,9 +269,7 @@ class FindPatientDialog(wx.Dialog):
         try:
             self.mv.con.delete(Patient, pid)
             wx.MessageBox("Xóa thành công", "OK")
-            self.mv.state.queuelist = self.mv.state.get_queuelist()
-            self.mv.state.todaylist = self.mv.state.get_todaylist()
-            self.mv.state.patient = None
+            self.mv.state.refresh()
             self.clear()
         except sqlite3.Error as error:
             wx.MessageBox(f"Lỗi không xóa được\n{error}", "Lỗi")
@@ -316,8 +314,7 @@ class EditFindPatientDialog(EditPatientDialog):
                 self.parent.clear()
                 page: wx.ListCtrl = self.mv.patient_book.GetCurrentPage()
                 idx: int = page.GetFirstSelected()
-                self.mv.state.queuelist = self.mv.state.get_queuelist()
-                self.mv.state.todaylist = self.mv.state.get_todaylist()
+                self.mv.state.refresh()
                 page.EnsureVisible(idx)
                 page.Select(idx)
                 self.parent.search.SetFocus()

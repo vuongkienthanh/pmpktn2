@@ -92,7 +92,6 @@ class Follow(wx.ComboBox):
         self.SetValue(self.format(k))
 
     def SetFollow(self, key: str | None):
-        print(key)
         if key is None:
             self.SetValue('')
         elif key in self.choice_dict.keys():
