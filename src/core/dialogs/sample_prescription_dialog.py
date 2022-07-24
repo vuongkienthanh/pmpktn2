@@ -228,13 +228,10 @@ class ItemList(wx.ListCtrl):
         super().__init__(parent, style=wx.LC_REPORT | wx.LC_SINGLE_SEL, name=name)
         self.parent = parent
         self._list_id: list[int] = []
-        for s in [
-            "Tên thuốc".ljust(40),
-            "Thành phần".ljust(40),
-            "Số cữ",
-            "Liều 1 cữ"
-        ]:
-            self.AppendColumn(s)
+        self.AppendColumn("Tên thuốc", width=size(0.1))
+        self.AppendColumn("Thành phần", width=size(0.1))
+        self.AppendColumn("Số cữ")
+        self.AppendColumn("Liều 1 cữ")
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelect)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onDeselect)
 
