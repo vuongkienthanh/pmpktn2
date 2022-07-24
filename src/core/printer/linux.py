@@ -60,7 +60,7 @@ class PrintOut(BasePrintOut):
                 dc.DrawText("Bác sĩ khám bệnh", 1100, 1750)
                 dc.DrawText(self.mv.config['ky_ten_bac_si'], 1050, 2050)
             with wx.DCFontChanger(dc, heading):
-                if self.mv.config['hien_thi_gia_tien']:
+                if self.mv.config['in_gia_tien']:
                     dc.DrawText(
                         f"Tổng cộng: {self.mv.price.GetValue()}", 100, 1720)
                 if self.mv.recheck.GetValue() != 0:

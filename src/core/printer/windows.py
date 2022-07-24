@@ -14,61 +14,60 @@ class PrintOut(BasePrintOut):
         assert p is not None
 
         # fonts
-        title = wx.Font(wx.FontInfo(40).Bold())
-        info = wx.Font(wx.FontInfo(30))
-        info_italic = wx.Font(wx.FontInfo(30).Italic())
-        list_num = wx.Font(wx.FontInfo(30).Bold())
-        drug_name = wx.Font(wx.FontInfo(36))
+        title = wx.Font(wx.FontInfo(36).Bold())        
+        info = wx.Font(wx.FontInfo(26))
+        info_italic = wx.Font(wx.FontInfo(26).Italic())
+        list_num = wx.Font(wx.FontInfo(26).Bold())
+        drug_name = wx.Font(wx.FontInfo(32))
         heading = wx.Font(wx.FontInfo(18))
 
         def draw_top():
             with wx.DCFontChanger(dc, heading):
-                dc.DrawText(self.mv.config['ten_phong_kham'], 150, 120)
-                dc.DrawText("Địa chỉ: " + self.mv.config['dia_chi'], 150, 160)
+                dc.DrawText(self.mv.config['ten_phong_kham'], 120, 100)
+                dc.DrawText("Địa chỉ: " + self.mv.config['dia_chi'], 120, 140)
                 dc.DrawText(
-                    "SĐT: " + self.mv.config['so_dien_thoai'], 150, 200)
-
+                    "SĐT: " + self.mv.config['so_dien_thoai'], 120, 180)
             with wx.DCFontChanger(dc, title):
-                dc.DrawText('ĐƠN THUỐC', 670, 240)
+                dc.DrawText('ĐƠN THUỐC', 560, 230)
             with wx.DCFontChanger(dc, info):
-                dc.DrawText("Họ tên:", 100, 330)
-                dc.DrawText("CN:", 1250, 330)
-                dc.DrawText("Giới:", 100, 400)
-                dc.DrawText("SN:", 500, 400)
-                dc.DrawText("Chẩn đoán:", 100, 470)
+                dc.DrawText("Họ tên:", 100, 300)
+                dc.DrawText("CN:", 1050, 300)
+                dc.DrawText("Giới:", 100, 350)
+                dc.DrawText("SN:", 480, 350)
+                dc.DrawText("Chẩn đoán:", 100, 400)
             with wx.DCFontChanger(dc, info_italic):
-                dc.DrawText(p.name, 300, 330)
-                dc.DrawText(str(self.mv.weight.Value) + " kg", 1360, 330)
-                dc.DrawText(str(p.gender), 230, 400)
-                dc.DrawText(p.birthdate.strftime("%d/%m/%Y"), 600, 400)
+                dc.DrawText(p.name, 260, 300)
+                dc.DrawText(str(self.mv.weight.Value) + " kg", 1140, 300)
+                dc.DrawText(str(p.gender), 210, 350)
+                dc.DrawText(p.birthdate.strftime("%d/%m/%Y"), 560, 350)
                 dc.DrawText(otf.bd_to_age(
-                    p.birthdate).rjust(13, ' '), 1250, 400)
+                    p.birthdate).rjust(13, ' '), 1060, 350)
                 diagnosis = tw.wrap(self.mv.diagnosis.Value,
-                                    55, initial_indent=" " * 20)
+                                    60, initial_indent=" " * 20)
                 if len(diagnosis) > 3:
                     diagnosis = diagnosis[:3]
                     diagnosis[-1] = diagnosis[-1][:-3] + '...'
                 for i, line in enumerate(diagnosis):
-                    dc.DrawText(line, 100, 470 + i * 50)
+                    dc.DrawText(line, 100, 400 + i * 50)
 
         def draw_bottom():
             with wx.DCFontChanger(dc, info):
-                dc.DrawText("Bác sĩ khám bệnh", 1100, 1750)
-                dc.DrawText(self.mv.config['ky_ten_bac_si'], 1050, 2050)
+                dc.DrawText("Bác sĩ khám bệnh", 1000, 1650)
+                dc.DrawText(self.mv.config['ky_ten_bac_si'], 950, 1950)
             with wx.DCFontChanger(dc, heading):
-                if self.mv.config['hien_thi_gia_tien']:
+                if self.mv.config['in_gia_tien']:
                     dc.DrawText(
-                        f"Tổng cộng: {self.mv.price.GetValue()}", 100, 1720)
+                        f"Tổng cộng: {self.mv.price.GetValue()}", 100, 1550)
                 if self.mv.recheck.GetValue() != 0:
                     dc.DrawText(
-                        f"Tái khám sau {self.mv.recheck.GetValue()} ngày", 100, 1770)
-                follow = tw.wrap(self.mv.follow.Value, width=45)
+                        f"Tái khám sau {self.mv.recheck.GetValue()} ngày", 100, 1600)
+                follow = tw.wrap(self.mv.follow.Value, width=50)
                 for index, line in enumerate(follow):
-                    dc.DrawText(line, 100, 1820 + 50 * index)
+                    dc.DrawText(line, 100, 1650 + 50 * index)
 
         def draw_page_count(i: int):
             with wx.DCFontChanger(dc, heading):
-                dc.DrawText(f"Trang {i}/2", 1300, 1700)
+                dc.DrawText(f"Trang {i}/2", 1100, 1600)
 
         def draw_content(first=True):
             i = 0
@@ -80,18 +79,18 @@ class PrintOut(BasePrintOut):
                 added = self.num_of_ld
             for dl in _list:
                 with wx.DCFontChanger(dc, list_num):
-                    dc.DrawText(f"{i+1+added}/", 80, 681 + 130 * i)
+                    dc.DrawText(f"{i+1+added}/", 80, 580 + 120 * i)
                 with wx.DCFontChanger(dc, drug_name):
-                    dc.DrawText(f"{dl['name']}", 180, 675 + 130 * i)
+                    dc.DrawText(f"{dl['name']}", 180, 580 + 120 * i)
                     t = f"{dl['quantity']} {dl['sale_unit'] or dl['usage_unit']}"
-                    dc.DrawText(t, 1300, 675 + 130 * i)
+                    dc.DrawText(t, 1200, 580 + 120 * i)
                 with wx.DCFontChanger(dc, info_italic):
                     dc.DrawText(dl['note'] or otf.get_usage_note_str(
                         dl['usage'],
                         str(dl['times']),
                         dl['dose'],
                         dl['usage_unit']
-                    ), 150, 730 + 130 * i)
+                    ), 150, 640 + 120 * i)
                 i += 1
 
         if page == 1:

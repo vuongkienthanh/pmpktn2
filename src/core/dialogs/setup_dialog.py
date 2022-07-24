@@ -20,8 +20,8 @@ class SetupDialog(wx.Dialog):
             self, value=self.mv.config['ky_ten_bac_si'], name="Ký tên bác sĩ")
         self.price = wx.TextCtrl(
             self, value=str(self.mv.config["cong_kham_benh"]), name="Công khám bệnh")
-        self.display_price = wx.CheckBox(self, name="Hiển thị giá tiền")
-        self.display_price.SetValue(self.mv.config['hien_thi_gia_tien'])
+        self.display_price = wx.CheckBox(self, name="In giá tiền")
+        self.display_price.SetValue(self.mv.config['in_gia_tien'])
         self.days = wx.SpinCtrl(
             self, initial=self.mv.config["so_ngay_toa_ve_mac_dinh"], name="Số ngày toa về mặc định")
         self.alert = wx.SpinCtrl(
@@ -76,7 +76,7 @@ class SetupDialog(wx.Dialog):
             self.mv.config['ky_ten_bac_si'] = self.doctor.Value
             self.mv.config['dia_chi'] = self.address.Value
             self.mv.config['so_dien_thoai'] = self.phone.Value
-            self.mv.config['hien_thi_gia_tien'] = self.display_price.Value
+            self.mv.config['in_gia_tien'] = self.display_price.Value
             self.mv.config['cong_kham_benh'] = int(self.price.Value)
             self.mv.config['so_ngay_toa_ve_mac_dinh'] = self.days.GetValue()
             self.mv.config["so_luong_thuoc_toi_thieu_de_bao_dong_do"] = self.alert.GetValue(
